@@ -1,7 +1,10 @@
 package com.hantash.notemark.ui.component
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -10,7 +13,21 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+enum class EnumSpacer {
+    WIDTH,
+    HEIGHT
+}
+
+@Composable
+fun AppSpacer(dp: Dp, enumSpacer: EnumSpacer) {
+    Spacer(
+        modifier = if (enumSpacer == EnumSpacer.WIDTH) Modifier.width(dp)
+        else Modifier.height(dp)
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
@@ -28,7 +45,7 @@ fun TopHeading(
         )
         Text(
             text = message,
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.bodyLarge
         )
     }
 }
@@ -63,6 +80,7 @@ fun AppTextButton(
 ) {
     TextButton(
         onClick = onClick,
+        shape = RoundedCornerShape(12.dp)
     ) {
         Text(
             text = text,
