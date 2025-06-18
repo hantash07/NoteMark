@@ -59,7 +59,8 @@ fun AppButton(
     onClick: () -> Unit = {}
 ) {
     Button(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .height(48.dp),
         shape = RoundedCornerShape(12.dp),
         enabled = isEnable,
         onClick = onClick,
