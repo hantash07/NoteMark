@@ -1,5 +1,6 @@
 package com.hantash.notemark.ui.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.hantash.notemark.ui.theme.Primary
 
 enum class EnumSpacer {
     WIDTH,
@@ -90,6 +93,29 @@ fun AppTextButton(
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun AppOutlineButton(
+    modifier: Modifier = Modifier,
+    text: String = "Button",
+    isEnable: Boolean = true,
+    onClick: () -> Unit = {}
+) {
+    OutlinedButton(
+        modifier = Modifier.fillMaxWidth()
+            .height(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, color = Primary),
+        enabled = isEnable,
+        onClick = onClick,
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            color = Primary
+        )
+    }
+}
 
 
 
