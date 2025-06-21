@@ -21,6 +21,7 @@ import com.hantash.notemark.ui.component.EnumInputType
 import com.hantash.notemark.ui.component.EnumSpacer
 import com.hantash.notemark.ui.component.InputField
 import com.hantash.notemark.ui.component.TopHeading
+import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.SurfaceLowest
 
@@ -74,7 +75,9 @@ fun LoginScreen(navController: NavController? = null) {
                 AppButton(text = "Log in")
 
                 AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
-                AppTextButton(text = "Don't have an account?")
+                AppTextButton(text = "Don't have an account?", onClick = {
+                    navController?.navigate(EnumScreen.SIGN_UP.name)
+                })
             }
         }
     )

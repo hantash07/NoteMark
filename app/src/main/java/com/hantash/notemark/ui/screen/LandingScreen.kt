@@ -24,6 +24,7 @@ import com.hantash.notemark.ui.component.AppOutlineButton
 import com.hantash.notemark.ui.component.AppSpacer
 import com.hantash.notemark.ui.component.EnumSpacer
 import com.hantash.notemark.ui.component.TopHeading
+import com.hantash.notemark.ui.navigation.EnumScreen
 
 @Preview(showBackground = true)
 @Composable
@@ -50,11 +51,21 @@ fun LandingScreen(navController: NavController? = null) {
             TopHeading(title = "Your Own Collection of Notes", message = "Capture your thoughts and ideas.")
 
             AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
-            AppButton(text = "Get Started")
+            AppButton(text = "Get Started", onClick = {
+                navigateTo(navController = navController, screenName = EnumScreen.SIGN_UP.name)
+            })
 
             AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
-            AppOutlineButton(text = "Login")
+            AppOutlineButton(text = "Login", onClick = {
+                navigateTo(navController = navController, screenName = EnumScreen.LOGIN.name)
+            })
 
         }
+    }
+}
+
+private fun navigateTo(navController: NavController?, screenName: String) {
+    navController?.navigate(screenName) {
+        popUpTo(EnumScreen.LANDING.name) {inclusive = true}
     }
 }

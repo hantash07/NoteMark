@@ -21,6 +21,7 @@ import com.hantash.notemark.ui.component.EnumInputType
 import com.hantash.notemark.ui.component.EnumSpacer
 import com.hantash.notemark.ui.component.InputField
 import com.hantash.notemark.ui.component.TopHeading
+import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.SurfaceLowest
 
@@ -98,7 +99,13 @@ fun SignUpScreen(navController: NavController? = null) {
                 AppButton(text = "Create account")
 
                 AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
-                AppTextButton(text = "Already have an account?")
+                AppTextButton(text = "Already have an account?", onClick = {
+                    if (navController?.popBackStack() == false) {
+                        navController.navigate(EnumScreen.LOGIN.name) {
+                            popUpTo(EnumScreen.SIGN_UP.name) {inclusive = true}
+                        }
+                    }
+                })
             }
         }
     )
