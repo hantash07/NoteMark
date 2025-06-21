@@ -47,7 +47,6 @@ enum class EnumInputType{
     USERNAME
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun InputField(
@@ -56,6 +55,7 @@ fun InputField(
     name: String = "Email",
     value: String = "",//hantash@gmail.com
     placeholder: String = "john.doe@example.com",
+    supportingText: String = "",
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     isPasswordVisible: Boolean = false,
@@ -69,7 +69,7 @@ fun InputField(
             text = name,
             style = MaterialTheme.typography.bodyMedium.copy(color = OnSurface)
         )
-        AppSpacer(dp = 8.dp, enumSpacer = EnumSpacer.HEIGHT)
+        AppSpacer(dp = 4.dp, enumSpacer = EnumSpacer.HEIGHT)
         Box(
             modifier = Modifier.fillMaxWidth()
                 .height(48.dp)
@@ -113,6 +113,14 @@ fun InputField(
                     style = MaterialTheme.typography.bodyLarge.copy(color = OnSurfaceVariant)
                 )
             }
+        }
+        if (supportingText.isNotEmpty()) {
+            Text(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 4.dp, start = 12.dp),
+                text = supportingText,
+                style = MaterialTheme.typography.bodySmall.copy(color = OnSurfaceVariant)
+            )
         }
     }
 }

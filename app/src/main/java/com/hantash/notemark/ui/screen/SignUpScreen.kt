@@ -3,9 +3,9 @@ package com.hantash.notemark.ui.screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,7 +26,8 @@ import com.hantash.notemark.ui.theme.SurfaceLowest
 
 @Preview(showBackground = true)
 @Composable
-fun LoginScreen(navController: NavController? = null) {
+fun SignUpScreen(navController: NavController? = null) {
+
     Scaffold(
         content = { paddingValues ->
             Column(
@@ -37,14 +38,22 @@ fun LoginScreen(navController: NavController? = null) {
                     .padding(top = 4.dp)
                     .background(
                         color = SurfaceLowest,
-                        RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
                     )
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 AppSpacer(dp = 16.dp, EnumSpacer.HEIGHT)
-                TopHeading(title = "Log In", message = "Capture your thoughts and ideas.")
+                TopHeading(title = "Create account", message = "Capture your thoughts and ideas.")
+
+                AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
+                InputField(
+                    type = EnumInputType.USERNAME,
+                    name = "Username",
+                    placeholder = "john.doe",
+                    value = "",
+                    onValueChange = { value -> },
+                )
 
                 AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
                 InputField(
@@ -70,18 +79,28 @@ fun LoginScreen(navController: NavController? = null) {
                     }
                 )
 
+                AppSpacer(dp = 16.dp, EnumSpacer.HEIGHT)
+                InputField(
+                    type = EnumInputType.PASSWORD,
+                    keyboardType = KeyboardType.Password,
+                    name = "Repeat Password",
+                    placeholder = "Password",
+                    value = "",
+                    onValueChange = {
+
+                    },
+                    onPasswordVisibility = {
+
+                    }
+                )
+
                 AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
-                AppButton(text = "Log in")
+                AppButton(text = "Create account")
 
                 AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
-                AppTextButton(text = "Don't have an account?")
+                AppTextButton(text = "Already have an account?")
             }
         }
     )
+
 }
-
-
-
-
-
-
