@@ -18,17 +18,20 @@ import com.hantash.notemark.ui.theme.NoteMarkTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val splashScreen = installSplashScreen()
-        splashScreen.setKeepOnScreenCondition {
-            false
-        }
+        initSplashScreen()
 
         enableEdgeToEdge()
         setContent {
             NoteMarkTheme {
                 ScreenNavigation()
             }
+        }
+    }
+
+    private fun initSplashScreen() {
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition {
+            false
         }
     }
 }

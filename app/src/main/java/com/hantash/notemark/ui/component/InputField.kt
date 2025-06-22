@@ -2,6 +2,8 @@ package com.hantash.notemark.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,14 +26,18 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +46,7 @@ import com.hantash.notemark.ui.theme.OnSurface
 import com.hantash.notemark.ui.theme.OnSurfaceVariant
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.Surface
+import com.hantash.notemark.ui.theme.Tertiary
 
 enum class EnumInputType{
     EMAIL,
@@ -53,15 +60,20 @@ fun InputField(
     modifier: Modifier = Modifier,
     type: EnumInputType = EnumInputType.EMAIL,
     name: String = "Email",
-    value: String = "",//hantash@gmail.com
+    value: String = "",
     placeholder: String = "john.doe@example.com",
     supportingText: String = "",
+    errorText: String = "",
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     isPasswordVisible: Boolean = false,
+    isValid: Boolean = true,
     onValueChange: (String) -> Unit = {},
     onPasswordVisibility: () -> Unit = {},
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused = interactionSource.collectIsFocusedAsState()
+
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -76,9 +88,9 @@ fun InputField(
                 .border(
                     width = 1.dp,
                     shape = RoundedCornerShape(12.dp),
-                    color = if (value.isNotEmpty()) Primary else Color.Transparent
+                    color = if (isFocused.value) Primary else if (!isFocused.value && !isValid && value.isNotEmpty()) Tertiary else Color.Transparent
                 )
-                .background(color =  if (value.isNotEmpty()) Color.Transparent else Surface, shape = RoundedCornerShape(12.dp)),
+                .background(color =  if (isFocused.value || (!isValid && value.isNotEmpty())) Color.Transparent else Surface, shape = RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.CenterStart
         ) {
             Row(
@@ -90,6 +102,10 @@ fun InputField(
                     value = value,
                     onValueChange = onValueChange,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = OnSurface),
+                    cursorBrush = SolidColor(if (isFocused.value) Primary else if (!isFocused.value && !isValid && value.isNotEmpty()) Tertiary else Color.Transparent),
+                    interactionSource = interactionSource,
+                    singleLine = true,
+                    visualTransformation = if (type == EnumInputType.PASSWORD && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = keyboardType,
                         imeAction = imeAction
@@ -114,12 +130,20 @@ fun InputField(
                 )
             }
         }
-        if (supportingText.isNotEmpty()) {
+        if (supportingText.isNotEmpty() && isFocused.value && value.isEmpty()) {
             Text(
                 modifier = Modifier.fillMaxWidth()
                     .padding(top = 4.dp, start = 12.dp),
                 text = supportingText,
                 style = MaterialTheme.typography.bodySmall.copy(color = OnSurfaceVariant)
+            )
+        }
+        if (errorText.isNotEmpty() && !isFocused.value && value.isNotEmpty() && !isValid) {
+            Text(
+                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 4.dp, start = 12.dp),
+                text = errorText,
+                style = MaterialTheme.typography.bodySmall.copy(color = Tertiary)
             )
         }
     }
