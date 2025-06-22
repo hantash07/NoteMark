@@ -75,6 +75,9 @@ dependencies {
     //Navigation
     implementation(libs.androidx.navigation)
 
+    //Splash Screen
+    implementation(libs.androidx.splash)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

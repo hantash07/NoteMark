@@ -15,6 +15,7 @@ room = "2.6.1"
 navigation = "2.8.5"
 coil = "3.0.4"
 ksp = "2.0.21-1.0.27"
+splash = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -42,6 +43,8 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 coil3-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil3-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+androidx-splash = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
