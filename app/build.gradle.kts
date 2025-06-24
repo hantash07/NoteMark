@@ -78,6 +78,9 @@ dependencies {
     //Splash Screen
     implementation(libs.androidx.splash)
 
+    //Window Manager
+    implementation(libs.androidx.window.size)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

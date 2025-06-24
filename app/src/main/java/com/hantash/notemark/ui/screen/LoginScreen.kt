@@ -1,5 +1,6 @@
 package com.hantash.notemark.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.hantash.notemark.DevicePosture
 import com.hantash.notemark.ui.component.AppButton
 import com.hantash.notemark.ui.component.AppSpacer
 import com.hantash.notemark.ui.component.AppTextButton
@@ -33,7 +35,9 @@ import com.hantash.notemark.ui.component.TopHeading
 import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.SurfaceLowest
+import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.isValidEmail
+import com.hantash.notemark.utils.localScreenOrientation
 
 @Preview(showBackground = true)
 @Composable
@@ -49,6 +53,13 @@ fun LoginScreen(navController: NavController? = null) {
     }
     val isPassword = remember {
         derivedStateOf { password.value.isNotEmpty() }
+    }
+
+    when (localScreenOrientation.current) {
+        DevicePosture.MOBILE_PORTRAIT -> debug("MOBILE_PORTRAIT")
+        DevicePosture.MOBILE_LANDSCAPE -> debug("MOBILE_LANDSCAPE")
+        DevicePosture.TABLET_PORTRAIT -> debug("TABLET_PORTRAIT")
+        DevicePosture.TABLET_LANDSCAPE -> debug("TABLET_LANDSCAPE")
     }
 
     Scaffold(
