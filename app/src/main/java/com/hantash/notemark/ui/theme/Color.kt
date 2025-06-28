@@ -28,3 +28,5 @@ val SurfaceLowest = Color(0xFFFFFFFF)
 val OnSurface = Color(0xFF1B1B1C)
 val OnSurfaceVariant = Color(0xFF535364)
 val OnSurfaceOpacity12 = Color(0x1F1B1B1C) // 12% opacity
+
+val LandingBg = Color(0xFFE0EAFF)
