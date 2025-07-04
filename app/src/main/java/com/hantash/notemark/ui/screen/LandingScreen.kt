@@ -91,7 +91,6 @@ private fun LandingPortrait(navController: NavController? = null) {
     }
 }
 
-
 @Composable
 private fun LandingLandscape(navController: NavController? = null) {
     Row(

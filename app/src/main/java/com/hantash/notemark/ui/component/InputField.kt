@@ -44,16 +44,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.hantash.notemark.R
+import com.hantash.notemark.ui.component.EnumNoteField.TITLE
 import com.hantash.notemark.ui.theme.OnSurface
+import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
 import com.hantash.notemark.ui.theme.OnSurfaceVariant
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.ui.theme.Tertiary
 
-enum class EnumInputType{
+enum class EnumInputType {
     EMAIL,
     PASSWORD,
     USERNAME
+}
+
+enum class EnumNoteField {
+    TITLE,
+    DESCRIPTION
 }
 
 @Preview(showBackground = true)
@@ -86,21 +93,26 @@ fun InputField(
         )
         AppSpacer(dp = 4.dp, enumSpacer = EnumSpacer.HEIGHT)
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .height(48.dp)
                 .border(
                     width = 1.dp,
                     shape = RoundedCornerShape(12.dp),
                     color = if (isFocused.value) Primary else if (!isFocused.value && !isValid && value.isNotEmpty()) Tertiary else Color.Transparent
                 )
-                .background(color =  if (isFocused.value || (!isValid && value.isNotEmpty())) Color.Transparent else Surface, shape = RoundedCornerShape(12.dp)),
+                .background(
+                    color = if (isFocused.value || (!isValid && value.isNotEmpty())) Color.Transparent else Surface,
+                    shape = RoundedCornerShape(12.dp)
+                ),
             contentAlignment = Alignment.CenterStart
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BasicTextField(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .weight(1f)
                         .padding(start = 10.dp, end = 10.dp),
                     value = value,
                     onValueChange = onValueChange,
@@ -127,7 +139,8 @@ fun InputField(
             }
             if (value.isEmpty()) {
                 Text(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(10.dp),
                     text = placeholder,
                     style = MaterialTheme.typography.bodyLarge.copy(color = OnSurfaceVariant)
@@ -136,7 +149,8 @@ fun InputField(
         }
         if (supportingText.isNotEmpty() && isFocused.value && value.isEmpty()) {
             Text(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = 4.dp, start = 12.dp),
                 text = supportingText,
                 style = MaterialTheme.typography.bodySmall.copy(color = OnSurfaceVariant)
@@ -144,7 +158,8 @@ fun InputField(
         }
         if (errorText.isNotEmpty() && !isFocused.value && value.isNotEmpty() && !isValid) {
             Text(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .padding(top = 4.dp, start = 12.dp),
                 text = errorText,
                 style = MaterialTheme.typography.bodySmall.copy(color = Tertiary)
@@ -152,3 +167,43 @@ fun InputField(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun NotesField(
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .height(76.dp),
+    enumNoteField: EnumNoteField = TITLE,
+    value: String = "",
+    placeholder: String = "Note Title",
+    onValueChange: (String) -> Unit = {},
+) {
+    TextField(
+        modifier = modifier,
+        value = value,
+        placeholder = {
+            Text(
+                text = placeholder,
+                style = if (enumNoteField == TITLE)
+                    MaterialTheme.typography.titleLarge.copy(color = OnSurfaceVariant)
+                else
+                    MaterialTheme.typography.bodyLarge.copy(color = OnSurfaceVariant)
+            )
+        },
+        textStyle = if (enumNoteField == TITLE)
+            MaterialTheme.typography.titleLarge.copy(color = OnSurface)
+        else
+            MaterialTheme.typography.bodyLarge.copy(color = OnSurfaceVariant),
+        singleLine = enumNoteField == TITLE,
+        onValueChange = onValueChange,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = if (enumNoteField == TITLE) OnSurfaceOpacity12 else Color.Transparent,
+            unfocusedIndicatorColor = if (enumNoteField == TITLE) OnSurfaceOpacity12 else Color.Transparent,
+        )
+    )
+}
+
+
