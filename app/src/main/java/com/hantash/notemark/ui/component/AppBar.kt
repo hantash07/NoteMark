@@ -50,7 +50,7 @@ fun BaseAppBar(
     onClickSaveNote: () -> Unit = {},
 ) {
     val bgColor = when(enumScreen) {
-        NOTE_LIST -> Color.White
+        NOTE_LIST -> SurfaceLowest
         else -> Surface
     }
 
