@@ -68,6 +68,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    //DataStore
+    implementation(libs.androidx.datastore)
+
     //Coil
     implementation(libs.coil3.compose)
     implementation(libs.coil3.network)
@@ -81,6 +84,11 @@ dependencies {
     //Window Manager
     implementation(libs.androidx.window.size)
 
+    //Retrofit
+    implementation(libs.retrofit2.retrofit)
+    implementation(libs.retrofit2.converter)
+    implementation(libs.retrofit2.okHttp3)
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
