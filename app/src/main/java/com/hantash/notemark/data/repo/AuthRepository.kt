@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.flow
 class AuthRepository(private val noteAPI: NoteAPI) {
     /*
     * Suspended Functions can also be used. But I prefer flow as it can emit multiple values whereas suspend function returns only one.
-    * Following flow used are Cold Flow.
+    * Following flows used are Cold Flow.
+    * Cold Flow means that the code inside the flow executed when there is a collector.
     * */
 
     fun register(username: String, email: String, password: String): Flow<Resource<User>> = flow {

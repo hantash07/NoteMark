@@ -15,7 +15,7 @@ import com.hantash.notemark.ui.screen.SignUpScreen
 @Composable
 fun ScreenNavigation() {
     val navController = rememberNavController()
-    val defaultScreen = EnumScreen.NOTE_DETAIL.name //EnumScreen.LANDING.name
+    val defaultScreen = EnumScreen.LANDING.name
 
     NavHost(navController = navController, startDestination = defaultScreen) {
 
