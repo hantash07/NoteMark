@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.kotlin.serializer)
     alias(libs.plugins.hilt.android)
 }
 
@@ -88,6 +89,9 @@ dependencies {
     implementation(libs.retrofit2.retrofit)
     implementation(libs.retrofit2.converter)
     implementation(libs.retrofit2.okHttp3)
+
+    //Kotlinx Serialization
+    implementation(libs.kotlinx.serializer)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -9,8 +9,8 @@ import retrofit2.http.POST
 
 interface NoteAPI {
     @POST(Constant.BASE_URL + "/api/auth/register")
-    suspend fun register(@Body payload: Map<String, String>): Response<User>
+    suspend fun register(@Body payload: Map<String, String>): Response<Unit>
 
     @POST(Constant.BASE_URL + "/api/auth/login")
-    suspend fun login(@Body payload: Map<String, String>): Response<AuthToken>
+    suspend fun login(@Body payload: Map<String, String>): Response<AuthToken?>
 }

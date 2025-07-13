@@ -1,9 +1,12 @@
 package com.hantash.notemark.viewmodel
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hantash.notemark.data.api.Resource
 import com.hantash.notemark.data.repo.AuthRepository
+import com.hantash.notemark.data.repo.PreferencesRepository
 import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.navigation.EnumScreen
@@ -14,12 +17,17 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AuthViewModel @Inject constructor(private val authRepository: AuthRepository) : ViewModel() {
+class AuthViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val prefRepository: PreferencesRepository
+) : ViewModel() {
     /*
     * The flows used in this class are Hot Flow.
     * Hot flows means that the flow start emitting without the collector. The flow start its execution even if there is no Collector
@@ -36,6 +44,17 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     private val _uiEventFlow = MutableSharedFlow<UiEvent>()
     val uiEventFlow: SharedFlow<UiEvent> = _uiEventFlow.asSharedFlow()
 
+    private val _isUserLoggedInState = MutableStateFlow(false)
+    val isUserLoggedInState: StateFlow<Boolean> = _isUserLoggedInState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            prefRepository.accessToken.collect { token ->
+                _isUserLoggedInState.value = token.isNotBlank()
+            }
+        }
+    }
+
     fun register(username: String, email: String, password: String) {
         viewModelScope.launch {
             authRepository.register(username, email, password).collect { result ->
@@ -46,7 +65,9 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
 
                     is Resource.Success -> {
                         _uiSignUpState.value = UiState.Success(result.data)
-                        _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.NOTE_LIST.name))
+                        _uiEventFlow.emit(UiEvent.Authenticate(email, password))
+
+                        prefRepository.saveUserDetail(username, email, password)
                     }
 
                     is Resource.Error -> {
@@ -67,8 +88,11 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
                     }
 
                     is Resource.Success -> {
-                        _uiLoginState.value = UiState.Success(result.data)
-                        _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.NOTE_LIST.name))
+                        val authToken = result.data
+                        _uiLoginState.value = UiState.Success(authToken)
+                        _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.NOTE_LIST))
+
+                        prefRepository.saveAuthDetail(authToken?.accessToken ?: "", authToken?.refreshToken ?: "")
                     }
 
                     is Resource.Error -> {
@@ -77,6 +101,12 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
                     }
                 }
             }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            prefRepository.clear()
         }
     }
 }

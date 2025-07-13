@@ -6,13 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,11 +24,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.hantash.notemark.DevicePosture
+import com.hantash.notemark.ui.common.UiEvent
+import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.component.AppButton
 import com.hantash.notemark.ui.component.AppSpacer
 import com.hantash.notemark.ui.component.AppTextButton
@@ -38,13 +42,30 @@ import com.hantash.notemark.ui.component.TopHeading
 import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.SurfaceLowest
-import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.isValidEmail
 import com.hantash.notemark.utils.localScreenOrientation
+import com.hantash.notemark.viewmodel.AuthViewModel
 
 @Composable
-fun LoginScreen(navController: NavController? = null) {
+fun LoginScreen(onNavigateTo: (EnumScreen) -> Unit) {
     val focusManager = LocalFocusManager.current
+    val snackBarHost = remember { SnackbarHostState() }
+
+    val viewModel: AuthViewModel = hiltViewModel()
+
+    LaunchedEffect(true) {
+        viewModel.uiEventFlow.collect { event ->
+            when(event) {
+                is UiEvent.Navigate -> {
+                    onNavigateTo.invoke(event.enumScreen)
+                }
+                is UiEvent.ShowSnackBar -> {
+                    snackBarHost.showSnackbar(message = event.message)
+                }
+                else -> {}
+            }
+        }
+    }
 
     Scaffold(
         content = { paddingValues ->
@@ -60,22 +81,23 @@ fun LoginScreen(navController: NavController? = null) {
             ) {
                 when (localScreenOrientation.current) {
                     DevicePosture.MOBILE_PORTRAIT, DevicePosture.TABLET_PORTRAIT -> LoginPortrait(
-                        navController
+                        onNavigateTo
                     )
 
                     DevicePosture.MOBILE_LANDSCAPE, DevicePosture.TABLET_LANDSCAPE -> LoginLandscape(
-                        navController
+                        onNavigateTo
                     )
 
-                    else -> LoginPortrait(navController)
+                    else -> LoginPortrait(onNavigateTo)
                 }
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(snackBarHost) }
     )
 }
 
 @Composable
-private fun LoginPortrait(navController: NavController? = null) {
+private fun LoginPortrait(onNavigateTo: (EnumScreen) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,12 +112,12 @@ private fun LoginPortrait(navController: NavController? = null) {
         TopHeading(title = "Log In", message = "Capture your thoughts and ideas.")
 
         AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
-        LoginContent(navController)
+        LoginContent(onNavigateTo)
     }
 }
 
 @Composable
-private fun LoginLandscape(navController: NavController? = null) {
+private fun LoginLandscape(onNavigateTo: (EnumScreen) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -111,12 +133,15 @@ private fun LoginLandscape(navController: NavController? = null) {
             message = "Capture your thoughts and ideas."
         )
 
-        LoginContent(modifier = Modifier.weight(1f), navController = navController)
+        LoginContent(modifier = Modifier.weight(1f), onNavigateTo = onNavigateTo)
     }
 }
 
 @Composable
-private fun LoginContent(navController: NavController? = null, modifier: Modifier = Modifier) {
+private fun LoginContent(onNavigateTo: (EnumScreen) -> Unit = {}, modifier: Modifier = Modifier) {
+    val viewModel: AuthViewModel = hiltViewModel()
+    val uiState = viewModel.uiLoginState.collectAsStateWithLifecycle()
+
     val focusManager = LocalFocusManager.current
 
     val email = rememberSaveable { mutableStateOf("") }
@@ -171,8 +196,11 @@ private fun LoginContent(navController: NavController? = null, modifier: Modifie
         AppButton(
             text = "Log in",
             isEnable = isEmailValid.value && isPassword.value,
+            isLoading = (uiState.value is UiState.Loading),
             onClick = {
                 focusManager.clearFocus()
+
+                viewModel.login(email.value, password.value)
             }
         )
 
@@ -180,7 +208,7 @@ private fun LoginContent(navController: NavController? = null, modifier: Modifie
         AppTextButton(
             text = "Don't have an account?",
             onClick = {
-                navController?.navigate(EnumScreen.SIGN_UP.name)
+                onNavigateTo.invoke(EnumScreen.SIGN_UP)
             }
         )
     }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +41,7 @@ import com.hantash.notemark.ui.theme.OnSurface
 import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
 import com.hantash.notemark.ui.theme.OnSurfaceVariant
 import com.hantash.notemark.ui.theme.Primary
+import com.hantash.notemark.ui.theme.SurfaceLowest
 import com.hantash.notemark.ui.theme.Tertiary
 
 enum class EnumSpacer {
@@ -82,19 +84,28 @@ fun AppButton(
     modifier: Modifier = Modifier,
     text: String = "Button",
     isEnable: Boolean = true,
+    isLoading: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     Button(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(48.dp),
         shape = RoundedCornerShape(12.dp),
         enabled = isEnable,
         onClick = onClick,
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall
-        )
+        if (!isLoading) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleSmall
+            )
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.size(40.dp),
+                color = SurfaceLowest
+            )
+        }
     }
 }
 
@@ -125,7 +136,8 @@ fun AppOutlineButton(
     onClick: () -> Unit = {}
 ) {
     OutlinedButton(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(48.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, color = Primary),
@@ -150,7 +162,7 @@ fun AppFloatingButton(
         Color(0xFF58A1F8), // light blue
         Color(0xFF5A4CF7)  // purple
     )
-    
+
     Box(
         modifier = Modifier
             .shadow(
@@ -184,7 +196,8 @@ fun SettingsItem(
     onClick: () -> Unit = {},
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -229,7 +242,10 @@ fun EditPreviewNote(
 ) {
     Row(
         modifier = modifier
-            .background(color = OnSurfaceOpacity12, shape = RoundedCornerShape(corner = CornerSize(16.dp))),
+            .background(
+                color = OnSurfaceOpacity12,
+                shape = RoundedCornerShape(corner = CornerSize(16.dp))
+            ),
     ) {
         IconButton(
             modifier = Modifier.padding(2.dp),

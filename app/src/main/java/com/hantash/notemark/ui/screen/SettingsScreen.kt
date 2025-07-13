@@ -1,6 +1,7 @@
 package com.hantash.notemark.ui.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -38,6 +39,9 @@ private fun SettingsContent(navController: NavController? = null) {
                 .fillMaxSize()
                 .background(color = Surface)
                 .padding(start = 16.dp, end = 16.dp)
+                .clickable {
+
+                }
             ) {
                 SettingsItem(
                     text = "Log out",

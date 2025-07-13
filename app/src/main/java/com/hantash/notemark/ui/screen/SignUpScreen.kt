@@ -12,7 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,8 +28,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hantash.notemark.DevicePosture
+import com.hantash.notemark.ui.common.UiEvent
+import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.component.AppButton
 import com.hantash.notemark.ui.component.AppSpacer
 import com.hantash.notemark.ui.component.AppTextButton
@@ -40,11 +46,33 @@ import com.hantash.notemark.ui.theme.SurfaceLowest
 import com.hantash.notemark.utils.isValidEmail
 import com.hantash.notemark.utils.isValidPassword
 import com.hantash.notemark.utils.localScreenOrientation
+import com.hantash.notemark.viewmodel.AuthViewModel
+import kotlinx.coroutines.flow.collect
 
 @Composable
-fun SignUpScreen(navController: NavController? = null) {
+fun SignUpScreen(onNavigateTo: (EnumScreen) -> Unit) {
     val focusManager = LocalFocusManager.current
+    val snackBarHost = remember { SnackbarHostState() }
 
+    val viewModel: AuthViewModel = hiltViewModel()
+    
+    LaunchedEffect(true) { 
+        viewModel.uiEventFlow.collect { event ->
+            when(event) {
+                is UiEvent.Authenticate -> {
+                    viewModel.login(event.email, event.password)
+                }
+                is UiEvent.Navigate -> {
+                    onNavigateTo.invoke(event.enumScreen)
+                }
+                is UiEvent.ShowSnackBar -> {
+                    snackBarHost.showSnackbar(message = event.message)
+                }
+                else -> {}
+            }
+        }
+    }
+    
     Scaffold(
         content = { paddingValues ->
             Box(
@@ -59,23 +87,26 @@ fun SignUpScreen(navController: NavController? = null) {
             ) {
                 when (localScreenOrientation.current) {
                     DevicePosture.MOBILE_PORTRAIT, DevicePosture.TABLET_PORTRAIT -> SignUpPortrait(
-                        navController
+                        onNavigateTo
                     )
 
                     DevicePosture.MOBILE_LANDSCAPE, DevicePosture.TABLET_LANDSCAPE -> SignUpLandscape(
-                        navController
+                        onNavigateTo
                     )
 
-                    else -> SignUpPortrait(navController)
+                    else -> SignUpPortrait(onNavigateTo)
                 }
             }
+        },
+        snackbarHost = {
+            SnackbarHost(snackBarHost)
         }
     )
 
 }
 
 @Composable
-private fun SignUpPortrait(navController: NavController? = null) {
+private fun SignUpPortrait(onNavigateTo: (EnumScreen) -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,12 +121,12 @@ private fun SignUpPortrait(navController: NavController? = null) {
         TopHeading(title = "Create account", message = "Capture your thoughts and ideas.")
 
         AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
-        SignUpContent(navController = navController)
+        SignUpContent(onNavigateTo = onNavigateTo)
     }
 }
 
 @Composable
-private fun SignUpLandscape(navController: NavController? = null) {
+private fun SignUpLandscape(onNavigateTo: (EnumScreen) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -112,12 +143,15 @@ private fun SignUpLandscape(navController: NavController? = null) {
             message = "Capture your thoughts and ideas."
         )
 
-        SignUpContent( modifier = Modifier.weight(1f), navController = navController)
+        SignUpContent( modifier = Modifier.weight(1f), onNavigateTo = onNavigateTo)
     }
 }
 
 @Composable
-private fun SignUpContent(navController: NavController? = null, modifier: Modifier = Modifier) {
+private fun SignUpContent(onNavigateTo: (EnumScreen) -> Unit = {}, modifier: Modifier = Modifier) {
+    val viewModel: AuthViewModel = hiltViewModel()
+    val uiState = viewModel.uiSignUpState.collectAsStateWithLifecycle()
+
     val focusManager = LocalFocusManager.current
 
     val username = rememberSaveable { mutableStateOf("") }
@@ -227,18 +261,17 @@ private fun SignUpContent(navController: NavController? = null, modifier: Modifi
         AppButton(
             text = "Create account",
             isEnable = isSignUpValid.value,
+            isLoading = (uiState.value is UiState.Loading),
             onClick = {
                 focusManager.clearFocus()
+
+                viewModel.register(username.value, email.value, password.value)
             }
         )
 
         AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
         AppTextButton(text = "Already have an account?", onClick = {
-            if (navController?.popBackStack() == false) {
-                navController.navigate(EnumScreen.LOGIN.name) {
-                    popUpTo(EnumScreen.SIGN_UP.name) { inclusive = true }
-                }
-            }
+            onNavigateTo.invoke(EnumScreen.LOGIN)
         })
     }
 }

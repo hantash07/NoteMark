@@ -1,8 +1,12 @@
 package com.hantash.notemark.utils
 
+import android.content.Context
 import android.util.Log
 import android.util.Patterns
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.hantash.notemark.DevicePosture
 
 fun debug(message: String) {
@@ -22,3 +26,5 @@ fun String.isValidPassword(): Boolean {
 val localScreenOrientation = staticCompositionLocalOf<DevicePosture> {
     error("No orientation provided")
 }
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = Constant.PREFERENCE_NAME)
