@@ -1,8 +1,7 @@
 package com.hantash.notemark.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.State
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -13,28 +12,26 @@ import com.hantash.notemark.ui.screen.NoteDetailScreen
 import com.hantash.notemark.ui.screen.NoteListScreen
 import com.hantash.notemark.ui.screen.SettingsScreen
 import com.hantash.notemark.ui.screen.SignUpScreen
-import com.hantash.notemark.viewmodel.AuthViewModel
 
 @Composable
-fun ScreenNavigation() {
-    val viewModel: AuthViewModel = hiltViewModel()
-    val isLoggedIn = viewModel.isUserLoggedInState.collectAsState()
-
+fun ScreenNavigation(isLoggedIn: Boolean) {
     val navController = rememberNavController()
-    val startingScreen = if (!isLoggedIn.value) EnumScreen.LANDING.name else EnumScreen.NOTE_LIST.name
+    val startingScreen = if (!isLoggedIn) EnumScreen.LANDING.name else EnumScreen.NOTE_LIST.name
 
     NavHost(navController = navController, startDestination = startingScreen) {
 
         composable(startingScreen) {
             LandingScreen(onNavigateTo = { enumScreen ->
                 navController.navigate(enumScreen.name) {
-                    popUpTo(startingScreen) { inclusive = true } //Removing Landing Screen from Screen's Stack
+                    popUpTo(startingScreen) {
+                        inclusive = true
+                    } //Removing Landing Screen from Screen's Stack
                 }
             })
         }
 
         composable(route = EnumScreen.LOGIN.name) {
-            LoginScreen(onNavigateTo =  { enumScreen ->
+            LoginScreen(onNavigateTo = { enumScreen ->
                 if (enumScreen == EnumScreen.SIGN_UP) {
                     navController.navigate(EnumScreen.SIGN_UP.name)
                 }
@@ -67,19 +64,30 @@ fun ScreenNavigation() {
         }
 
         composable(route = EnumScreen.NOTE_LIST.name) {
-            NoteListScreen(navController)
+            NoteListScreen(onNavigateTo = { enumScreen ->
+                if (enumScreen == EnumScreen.SETTINGS) {
+                    navController.navigate(enumScreen.name)
+                }
+            })
         }
 
         composable(route = EnumScreen.NOTE_ADD_EDIT.name) {
-            NoteAddEditScreen(navController)
+            NoteAddEditScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(route = EnumScreen.NOTE_DETAIL.name) {
-            NoteDetailScreen(navController)
+            NoteDetailScreen(
+                onNavigateTo = {
+
+                },
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(route = EnumScreen.SETTINGS.name) {
-            SettingsScreen(navController)
+            SettingsScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

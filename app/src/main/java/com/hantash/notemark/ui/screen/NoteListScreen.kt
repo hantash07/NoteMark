@@ -13,14 +13,18 @@ import com.hantash.notemark.ui.component.BaseAppBar
 import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_ADD_EDIT
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_LIST
+import com.hantash.notemark.ui.navigation.EnumScreen.SETTINGS
 import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
 
 @Composable
-fun NoteListScreen(navController: NavController? = null) {
+fun NoteListScreen(onNavigateTo: (EnumScreen) -> Unit) {
     Scaffold(
         topBar = {
             BaseAppBar(
                 enumScreen = NOTE_LIST,
+                onClickSettings = {
+                    onNavigateTo.invoke(SETTINGS)
+                }
             )
         },
         content = { paddingValues ->
@@ -35,5 +39,5 @@ fun NoteListScreen(navController: NavController? = null) {
 @Preview(showBackground = true)
 @Composable
 private fun PreviewScreen() {
-    NoteListScreen()
+//    NoteListScreen()
 }

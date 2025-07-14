@@ -4,39 +4,49 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.hantash.notemark.ui.navigation.ScreenNavigation
 import com.hantash.notemark.ui.theme.NoteMarkTheme
 import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
+import com.hantash.notemark.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initSplashScreen()
+        val viewModel: AuthViewModel by viewModels()
+
+        //Init Splash Screen
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition {
+            //Checking the login state. If its null it means no value is assign and continue showing the splash screen.
+            //Once the true or false value assign the splash screen will stop showing.
+            viewModel.isUserLoggedInState.value == null
+        }
 
         enableEdgeToEdge()
         setContent {
             NoteMarkTheme {
                 ProvideOrientation {
-                    ScreenNavigation()
+                    val isLoggedIn by viewModel.isUserLoggedInState.collectAsState(initial = null)
+                    isLoggedIn?.let {
+                        ScreenNavigation(it)
+                    }
                 }
             }
-        }
-    }
-
-    private fun initSplashScreen() {
-        val splashScreen = installSplashScreen()
-        splashScreen.setKeepOnScreenCondition {
-            false
         }
     }
 

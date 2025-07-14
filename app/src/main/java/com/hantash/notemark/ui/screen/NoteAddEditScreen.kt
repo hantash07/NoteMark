@@ -24,23 +24,23 @@ import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.utils.localScreenOrientation
 
 @Composable
-fun NoteAddEditScreen(navController: NavController) {
+fun NoteAddEditScreen(onNavigateBack: () -> Unit) {
     val modifier = when (localScreenOrientation.current) {
         DevicePosture.MOBILE_PORTRAIT -> Modifier.fillMaxWidth()
         else -> Modifier.width(540.dp)
     }
-    NoteAddEditContent(modifier, navController)
+    NoteAddEditContent(modifier, onNavigateBack = {
+        onNavigateBack.invoke()
+    })
 }
 
 @Composable
-private fun NoteAddEditContent(modifier: Modifier = Modifier, navController: NavController? = null) {
+private fun NoteAddEditContent(modifier: Modifier = Modifier, onNavigateBack: () -> Unit = {}) {
     Scaffold(
         topBar = {
             BaseAppBar(
                 enumScreen = NOTE_ADD_EDIT,
-                onClickBackButton = {
-                    navController?.popBackStack()
-                },
+                onClickBackButton = onNavigateBack,
                 onClickSaveNote = {
 
                 }

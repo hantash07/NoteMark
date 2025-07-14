@@ -29,27 +29,27 @@ import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.utils.localScreenOrientation
 
 @Composable
-fun NoteDetailScreen(navController: NavController) {
+fun NoteDetailScreen(onNavigateTo: (EnumScreen) -> Unit, onNavigateBack: () -> Unit) {
     val modifier = when (localScreenOrientation.current) {
         DevicePosture.MOBILE_PORTRAIT -> Modifier.fillMaxWidth()
         else -> Modifier.width(540.dp)
     }
-    NoteDetailContent(modifier, navController)
+    NoteDetailContent(modifier, onNavigateBack = {
+        onNavigateBack.invoke()
+    })
 }
 
 @Composable
 private fun NoteDetailContent(
     modifier: Modifier = Modifier.fillMaxSize(),
-    navController: NavController? = null
+    onNavigateBack: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
             BaseAppBar(
                 enumScreen = EnumScreen.NOTE_DETAIL,
                 title = "ALL NOTES",
-                onClickBackButton = {
-                    navController?.popBackStack()
-                }
+                onClickBackButton = onNavigateBack
             )
         },
         content = { paddingValues ->

@@ -44,8 +44,8 @@ class AuthViewModel @Inject constructor(
     private val _uiEventFlow = MutableSharedFlow<UiEvent>()
     val uiEventFlow: SharedFlow<UiEvent> = _uiEventFlow.asSharedFlow()
 
-    private val _isUserLoggedInState = MutableStateFlow(false)
-    val isUserLoggedInState: StateFlow<Boolean> = _isUserLoggedInState.asStateFlow()
+    private val _isUserLoggedInState = MutableStateFlow<Boolean?>(null)
+    val isUserLoggedInState: StateFlow<Boolean?> = _isUserLoggedInState.asStateFlow()
 
     init {
         viewModelScope.launch {
