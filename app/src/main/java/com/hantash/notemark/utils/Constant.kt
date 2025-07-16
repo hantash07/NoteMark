@@ -12,7 +12,6 @@ object Constant {
 object UserPreferencesKeys {
     val USERNAME = stringPreferencesKey("username")
     val EMAIL = stringPreferencesKey("email")
-    val PASSWORD = stringPreferencesKey("password")
     val ACCESS_TOKEN = stringPreferencesKey("access_token")
     val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
 }

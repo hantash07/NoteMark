@@ -1,18 +1,12 @@
 package com.hantash.notemark.data.repo
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
 import com.hantash.notemark.data.api.ExceptionAPI
 import com.hantash.notemark.data.api.NoteAPI
 import com.hantash.notemark.data.api.Resource
-import com.hantash.notemark.model.AuthToken
 import com.hantash.notemark.model.User
-import com.hantash.notemark.utils.UserPreferencesKeys
 import com.hantash.notemark.utils.debug
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 class AuthRepository(private val noteAPI: NoteAPI) {
     /*
@@ -35,7 +29,7 @@ class AuthRepository(private val noteAPI: NoteAPI) {
         }
     }
 
-    fun login(email: String, password: String): Flow<Resource<AuthToken?>> = flow {
+    fun login(email: String, password: String): Flow<Resource<User?>> = flow {
         emit(Resource.Loading())
         try {
             val payload = mapOf("email" to email, "password" to password)

@@ -3,8 +3,11 @@ package com.hantash.notemark.di.app
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.room.Room
 import com.hantash.notemark.data.api.ErrorInterceptor
 import com.hantash.notemark.data.api.NoteAPI
+import com.hantash.notemark.data.db.LocalDatabase
+import com.hantash.notemark.data.db.NoteDao
 import com.hantash.notemark.utils.Constant
 import com.hantash.notemark.utils.dataStore
 import dagger.Module
@@ -36,7 +39,7 @@ class AppModule {
 
     @Provides
     @AppScope
-    fun noteAPI(retrofit: Retrofit) : NoteAPI {
+    fun noteAPI(retrofit: Retrofit): NoteAPI {
         return retrofit.create(NoteAPI::class.java)
     }
 
@@ -44,6 +47,22 @@ class AppModule {
     @AppScope
     fun dataStore(@ApplicationContext context: Context): DataStore<Preferences> {
         return context.dataStore
+    }
+
+    @Provides
+    @AppScope
+    fun localDatabase(@ApplicationContext context: Context): LocalDatabase {
+        return Room.databaseBuilder(
+            context,
+            LocalDatabase::class.java,
+            name = "local_db"
+        ).fallbackToDestructiveMigrationFrom().build()
+    }
+
+    @Provides
+    @AppScope
+    fun noteDao(localDatabase: LocalDatabase): NoteDao {
+        return localDatabase.noteDao()
     }
 
 }

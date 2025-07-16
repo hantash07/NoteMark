@@ -1,7 +1,5 @@
 package com.hantash.notemark.viewmodel
 
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hantash.notemark.data.api.Resource
@@ -10,6 +8,7 @@ import com.hantash.notemark.data.repo.PreferencesRepository
 import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.navigation.EnumScreen
+import com.hantash.notemark.utils.debug
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,9 +16,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,10 +43,19 @@ class AuthViewModel @Inject constructor(
     private val _isUserLoggedInState = MutableStateFlow<Boolean?>(null)
     val isUserLoggedInState: StateFlow<Boolean?> = _isUserLoggedInState.asStateFlow()
 
+    private val _usernameState = MutableStateFlow("")
+    val usernameState: StateFlow<String> = _usernameState.asStateFlow()
+
     init {
         viewModelScope.launch {
             prefRepository.accessToken.collect { token ->
                 _isUserLoggedInState.value = token.isNotBlank()
+            }
+        }
+
+        viewModelScope.launch {
+            prefRepository.username.collect { username ->
+                _usernameState.value = username
             }
         }
     }
@@ -66,8 +71,6 @@ class AuthViewModel @Inject constructor(
                     is Resource.Success -> {
                         _uiSignUpState.value = UiState.Success(result.data)
                         _uiEventFlow.emit(UiEvent.Authenticate(email, password))
-
-                        prefRepository.saveUserDetail(username, email, password)
                     }
 
                     is Resource.Error -> {
@@ -88,11 +91,12 @@ class AuthViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
-                        val authToken = result.data
-                        _uiLoginState.value = UiState.Success(authToken)
+                        val user = result.data
+                        _uiLoginState.value = UiState.Success(user)
                         _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.NOTE_LIST))
 
-                        prefRepository.saveAuthDetail(authToken?.accessToken ?: "", authToken?.refreshToken ?: "")
+                        debug("Username: ${user?.username} Access Token ${user?.accessToken}")
+                        prefRepository.save(user?.username ?: "", user?.accessToken ?: "", user?.refreshToken ?: "")
                     }
 
                     is Resource.Error -> {

@@ -2,16 +2,12 @@ package com.hantash.notemark.ui.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.outlined.KeyboardArrowLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,7 +17,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +24,6 @@ import com.hantash.notemark.R
 import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_ADD_EDIT
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_LIST
-import com.hantash.notemark.ui.navigation.EnumScreen.SETTINGS
 import com.hantash.notemark.ui.theme.OnPrimary
 import com.hantash.notemark.ui.theme.OnSurface
 import com.hantash.notemark.ui.theme.OnSurfaceVariant
@@ -44,6 +38,7 @@ fun BaseAppBar(
     modifier: Modifier = Modifier,
     enumScreen: EnumScreen = NOTE_LIST,
     title: String = "NoteMark",
+    username: String = "",
     onClickBackButton: () -> Unit = {},
     onClickSettings: () -> Unit = {},
     onClickProfile: () -> Unit = {},
@@ -101,19 +96,21 @@ fun BaseAppBar(
                     )
                 }
 
-                IconButton(
-                    modifier = Modifier
-                        .background(
-                            color = Primary,
-                            shape = RoundedCornerShape(corner = CornerSize(12.dp))
+                if (username.isNotEmpty()) {
+                    IconButton(
+                        modifier = Modifier
+                            .background(
+                                color = Primary,
+                                shape = RoundedCornerShape(corner = CornerSize(12.dp))
+                            )
+                            .size(40.dp),
+                        onClick = onClickProfile
+                    ) {
+                        Text(
+                            text = username,
+                            style = MaterialTheme.typography.titleSmall.copy(color = OnPrimary)
                         )
-                        .size(40.dp),
-                    onClick = onClickProfile
-                ) {
-                    Text(
-                        text = "HN",
-                        style = MaterialTheme.typography.titleSmall.copy(color = OnPrimary)
-                    )
+                    }
                 }
             }
 

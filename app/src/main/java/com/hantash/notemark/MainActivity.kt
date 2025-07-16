@@ -14,14 +14,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.hantash.notemark.ui.navigation.ScreenNavigation
 import com.hantash.notemark.ui.theme.NoteMarkTheme
 import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

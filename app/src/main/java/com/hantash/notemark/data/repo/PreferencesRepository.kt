@@ -22,26 +22,9 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         it[UserPreferencesKeys.USERNAME] ?: ""
     }
 
-    fun getUserDetail(): Flow<User> = flow{
-        dataStore.data.map { preferences ->
-            val username = preferences[UserPreferencesKeys.USERNAME] ?: ""
-            val email = preferences[UserPreferencesKeys.EMAIL] ?: ""
-            val password = preferences[UserPreferencesKeys.PASSWORD] ?: ""
-
-            emit(User(username, email, password))
-        }
-    }
-
-    suspend fun saveUserDetail(username: String, email: String, password: String) {
+    suspend fun save(username: String, accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
             preferences[UserPreferencesKeys.USERNAME] = username
-            preferences[UserPreferencesKeys.EMAIL] = email
-            preferences[UserPreferencesKeys.PASSWORD] = password
-        }
-    }
-
-    suspend fun saveAuthDetail(accessToken: String, refreshToken: String) {
-        dataStore.edit { preferences ->
             preferences[UserPreferencesKeys.ACCESS_TOKEN] = accessToken
             preferences[UserPreferencesKeys.REFRESH_TOKEN] = refreshToken
         }

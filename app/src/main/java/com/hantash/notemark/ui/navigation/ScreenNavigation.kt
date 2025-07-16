@@ -65,9 +65,7 @@ fun ScreenNavigation(isLoggedIn: Boolean) {
 
         composable(route = EnumScreen.NOTE_LIST.name) {
             NoteListScreen(onNavigateTo = { enumScreen ->
-                if (enumScreen == EnumScreen.SETTINGS) {
-                    navController.navigate(enumScreen.name)
-                }
+                navController.navigate(enumScreen.name)
             })
         }
 
