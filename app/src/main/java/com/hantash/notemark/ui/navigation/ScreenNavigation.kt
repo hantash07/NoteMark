@@ -1,10 +1,11 @@
 package com.hantash.notemark.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.hantash.notemark.ui.screen.LandingScreen
 import com.hantash.notemark.ui.screen.LoginScreen
 import com.hantash.notemark.ui.screen.NoteAddEditScreen
@@ -17,6 +18,7 @@ import com.hantash.notemark.ui.screen.SignUpScreen
 fun ScreenNavigation(isLoggedIn: Boolean) {
     val navController = rememberNavController()
     val startingScreen = if (!isLoggedIn) EnumScreen.LANDING.name else EnumScreen.NOTE_LIST.name
+    val argNoteId = "noteId"
 
     NavHost(navController = navController, startDestination = startingScreen) {
 
@@ -64,19 +66,38 @@ fun ScreenNavigation(isLoggedIn: Boolean) {
         }
 
         composable(route = EnumScreen.NOTE_LIST.name) {
-            NoteListScreen(onNavigateTo = { enumScreen ->
-                navController.navigate(enumScreen.name)
-            })
+            NoteListScreen(
+                onNavigateTo = { enumScreen ->
+                    navController.navigate(enumScreen.name)
+                },
+                onNavWithArguments = { enumScreen, argValue ->
+                    navController.navigate(enumScreen.name + "/$argValue")
+                }
+            )
         }
 
-        composable(route = EnumScreen.NOTE_ADD_EDIT.name) {
-            NoteAddEditScreen(onNavigateBack = { navController.popBackStack() })
+        composable(
+            route = EnumScreen.NOTE_ADD_EDIT.name + "/{$argNoteId}",
+            arguments = listOf(navArgument(argNoteId) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString(argNoteId) ?: ""
+            NoteAddEditScreen(
+                noteId = noteId,
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
 
-        composable(route = EnumScreen.NOTE_DETAIL.name) {
+        composable(
+            route = EnumScreen.NOTE_DETAIL.name + "/{$argNoteId}",
+            arguments = listOf(navArgument(argNoteId) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val noteId = backStackEntry.arguments?.getString(argNoteId) ?: ""
             NoteDetailScreen(
-                onNavigateTo = {
-
+                noteId = noteId,
+                onNavWithArguments = { enumScreen, argValue ->
+                    navController.navigate(enumScreen.name + "/$argValue")
                 },
                 onNavigateBack = {
                     navController.popBackStack()

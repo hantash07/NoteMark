@@ -22,4 +22,7 @@ interface NoteDao {
 
     @Query("SELECT * FROM Note")
     fun fetch(): Flow<List<Note>>
+
+    @Query("SELECT * FROM Note WHERE id =:id")
+    fun fetch(id: String): Flow<Note>
 }

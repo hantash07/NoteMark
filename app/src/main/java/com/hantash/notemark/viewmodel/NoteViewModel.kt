@@ -1,16 +1,21 @@
 package com.hantash.notemark.viewmodel
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hantash.notemark.data.repo.NoteRepository
 import com.hantash.notemark.model.Note
 import com.hantash.notemark.ui.common.UiEvent
+import com.hantash.notemark.utils.debug
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,6 +47,9 @@ class NoteViewModel @Inject constructor(private val noteRepository: NoteReposito
             emptyList()
         )
 
+    private val _noteStateFlow = MutableStateFlow<Note?>(null)
+    val noteStateFlow: StateFlow<Note?> = _noteStateFlow.asStateFlow()
+
     fun addNote(note: Note) {
         viewModelScope.launch {
             noteRepository.addNote(note)
@@ -57,6 +65,14 @@ class NoteViewModel @Inject constructor(private val noteRepository: NoteReposito
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             noteRepository.deleteNote(note)
+        }
+    }
+
+    fun getNote(id: String) {
+        viewModelScope.launch {
+            noteRepository.fetchById(id).collect {
+                _noteStateFlow.value = it
+            }
         }
     }
 

@@ -7,6 +7,9 @@ object Constant {
     const val BASE_URL = "https://notemark.pl-coding.com"
 
     const val PREFERENCE_NAME = "user_preferences"
+
+    const val CONTENT_LENGTH_PORTRAIT = 150
+    const val CONTENT_LENGTH_LANDSCAPE = 250
 }
 
 object UserPreferencesKeys {

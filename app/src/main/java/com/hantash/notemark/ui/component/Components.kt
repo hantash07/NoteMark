@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.hantash.notemark.R
+import com.hantash.notemark.model.Note
 import com.hantash.notemark.ui.theme.OnPrimary
 import com.hantash.notemark.ui.theme.OnSurface
 import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
@@ -239,7 +240,7 @@ fun NoteDetailSection(
 fun EditPreviewNote(
     modifier: Modifier = Modifier,
     onClickEdit: () -> Unit = {},
-    onClickPreview: () -> Unit = {},
+    onPreviewLandscape: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -250,7 +251,7 @@ fun EditPreviewNote(
     ) {
         IconButton(
             modifier = Modifier.padding(2.dp),
-            onClick = {}) {
+            onClick = onClickEdit) {
             Icon(
                 painter = painterResource(R.drawable.ic_edit),
                 contentDescription = "Edit Icon"
@@ -258,7 +259,7 @@ fun EditPreviewNote(
         }
         IconButton(
             modifier = Modifier.padding(2.dp),
-            onClick = {}) {
+            onClick = onPreviewLandscape) {
             Icon(
                 painter = painterResource(R.drawable.ic_preview),
                 contentDescription = "Preview Icon"

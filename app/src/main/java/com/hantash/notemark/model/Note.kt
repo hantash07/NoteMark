@@ -11,10 +11,10 @@ import java.util.UUID
 data class Note(
     @PrimaryKey
     val id: UUID = UUID.randomUUID(),
-    var title: String = "",
+    var title: String = "Note Title",
     var content: String = "",
     val createdAt: Instant = Instant.now(),
-    val lastEditedAt: Instant = Instant.now()
+    var lastEditedAt: Instant = Instant.now()
 )
 
 class Converters {

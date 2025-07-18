@@ -37,16 +37,21 @@ import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_DETAIL
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_LIST
 import com.hantash.notemark.ui.navigation.EnumScreen.SETTINGS
 import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
+import com.hantash.notemark.utils.Constant
 import com.hantash.notemark.utils.beautifyUsername
+import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.viewmodel.AuthViewModel
 import com.hantash.notemark.viewmodel.NoteViewModel
 
 @Composable
-fun NoteListScreen(onNavigateTo: (EnumScreen) -> Unit) {
+fun NoteListScreen(
+    onNavigateTo: (EnumScreen) -> Unit,
+    onNavWithArguments: (EnumScreen, String) -> Unit
+) {
     val contentMaxLength = when (localScreenOrientation.current) {
-        DevicePosture.MOBILE_PORTRAIT -> 150
-        else -> 250
+        DevicePosture.MOBILE_PORTRAIT -> Constant.CONTENT_LENGTH_PORTRAIT
+        else -> Constant.CONTENT_LENGTH_LANDSCAPE
     }
 
     val authViewModel: AuthViewModel = hiltViewModel()
@@ -70,10 +75,10 @@ fun NoteListScreen(onNavigateTo: (EnumScreen) -> Unit) {
     NoteListScaffold(
         username = usernameState.value.beautifyUsername(),
         onClickSettings = {
-            onNavigateTo.invoke(SETTINGS)
+            onNavigateTo(SETTINGS)
         },
         onAddNotes = {
-            onNavigateTo.invoke(NOTE_ADD_EDIT)
+            onNavigateTo(NOTE_ADD_EDIT)
         },
         content = {
             Content(
@@ -81,7 +86,7 @@ fun NoteListScreen(onNavigateTo: (EnumScreen) -> Unit) {
                 notes = notesState.value,
                 contentMaxLength = contentMaxLength,
                 onPreview = { note ->
-                    onNavigateTo.invoke(NOTE_DETAIL)
+                    onNavWithArguments(NOTE_DETAIL, note.id.toString())
                 },
                 onDelete = { note ->
                     noteViewModel.showConfirmationDialog(note)
@@ -136,7 +141,7 @@ private fun NoteListScaffold(
 private fun Content(
     modifier: Modifier = Modifier,
     notes: List<Note> = emptyList(),
-    contentMaxLength: Int = 150,
+    contentMaxLength: Int = Constant.CONTENT_LENGTH_PORTRAIT,
     onPreview: (Note) -> Unit = {},
     onDelete: (Note) -> Unit = {},
 ) {
