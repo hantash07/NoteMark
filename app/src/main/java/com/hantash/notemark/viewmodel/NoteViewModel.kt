@@ -68,6 +68,12 @@ class NoteViewModel @Inject constructor(private val noteRepository: NoteReposito
         }
     }
 
+    fun clearNotes() {
+        viewModelScope.launch {
+            noteRepository.clearNotes()
+        }
+    }
+
     fun getNote(id: String) {
         viewModelScope.launch {
             noteRepository.fetchById(id).collect {

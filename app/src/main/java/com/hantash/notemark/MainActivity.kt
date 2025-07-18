@@ -39,10 +39,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             NoteMarkTheme {
                 ProvideOrientation {
-                    val isLoggedIn by viewModel.isUserLoggedInState.collectAsState(initial = null)
-                    isLoggedIn?.let {
-                        ScreenNavigation(it)
-                    }
+                    debug("MainActivity")
+                    ScreenNavigation()
                 }
             }
         }

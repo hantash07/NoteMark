@@ -20,6 +20,10 @@ class NoteRepository(private val noteDao: NoteDao) {
         noteDao.delete(note)
     }
 
+    suspend fun clearNotes() {
+        noteDao.clearNotes()
+    }
+
     fun fetchById(id: String): Flow<Note> {
         return noteDao.fetch(id)
     }

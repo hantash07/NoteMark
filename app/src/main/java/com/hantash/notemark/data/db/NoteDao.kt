@@ -20,6 +20,9 @@ interface NoteDao {
     @Delete
     suspend fun delete(note: Note)
 
+    @Query("DELETE FROM Note")
+    suspend fun clearNotes()
+
     @Query("SELECT * FROM Note")
     fun fetch(): Flow<List<Note>>
 

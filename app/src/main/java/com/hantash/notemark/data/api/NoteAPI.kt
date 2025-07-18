@@ -12,4 +12,7 @@ interface NoteAPI {
 
     @POST(Constant.BASE_URL + "/api/auth/login")
     suspend fun login(@Body payload: Map<String, String>): Response<User?>
+
+    @POST(Constant.BASE_URL + "/api/auth/logout")
+    suspend fun logout(@Body payload: Map<String, String>): Response<Unit>
 }

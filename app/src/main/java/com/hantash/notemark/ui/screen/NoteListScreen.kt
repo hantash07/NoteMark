@@ -39,7 +39,6 @@ import com.hantash.notemark.ui.navigation.EnumScreen.SETTINGS
 import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
 import com.hantash.notemark.utils.Constant
 import com.hantash.notemark.utils.beautifyUsername
-import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.viewmodel.AuthViewModel
 import com.hantash.notemark.viewmodel.NoteViewModel
@@ -78,7 +77,7 @@ fun NoteListScreen(
             onNavigateTo(SETTINGS)
         },
         onAddNotes = {
-            onNavigateTo(NOTE_ADD_EDIT)
+            onNavWithArguments(NOTE_ADD_EDIT, "")
         },
         content = {
             Content(

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hantash.notemark.data.api.Resource
 import com.hantash.notemark.data.repo.AuthRepository
+import com.hantash.notemark.data.repo.NoteRepository
 import com.hantash.notemark.data.repo.PreferencesRepository
 import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
@@ -16,13 +17,15 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val prefRepository: PreferencesRepository
+    private val prefRepository: PreferencesRepository,
+    private val noteRepository: NoteRepository
 ) : ViewModel() {
     /*
     * The flows used in this class are Hot Flow.
@@ -36,6 +39,9 @@ class AuthViewModel @Inject constructor(
 
     private val _uiLoginState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val uiLoginState: StateFlow<UiState<Unit>> = _uiLoginState.asStateFlow()
+
+    private val _uiLogoutState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val uiLogoutState: StateFlow<UiState<Unit>> = _uiLogoutState.asStateFlow()
 
     private val _uiEventFlow = MutableSharedFlow<UiEvent>()
     val uiEventFlow: SharedFlow<UiEvent> = _uiEventFlow.asSharedFlow()
@@ -95,7 +101,6 @@ class AuthViewModel @Inject constructor(
                         _uiLoginState.value = UiState.Success(user)
                         _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.NOTE_LIST))
 
-                        debug("Username: ${user?.username} Access Token ${user?.accessToken}")
                         prefRepository.save(user?.username ?: "", user?.accessToken ?: "", user?.refreshToken ?: "")
                     }
 
@@ -110,7 +115,26 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            prefRepository.clear()
+            val refreshToken = prefRepository.refreshToken.first()
+
+            authRepository.logout(refreshToken).collect { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        _uiLogoutState.value = UiState.Loading
+                    }
+                    is Resource.Success -> {
+                        _uiLogoutState.value = UiState.Success(result.data)
+                        _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.LOGIN))
+
+                        noteRepository.clearNotes()
+                        prefRepository.clear()
+                    }
+                    is Resource.Error -> {
+                        _uiLogoutState.value = UiState.Idle
+                        _uiEventFlow.emit(UiEvent.ShowSnackBar(result.message ?: ""))
+                    }
+                }
+            }
         }
     }
 }

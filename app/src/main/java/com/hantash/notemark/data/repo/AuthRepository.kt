@@ -24,7 +24,6 @@ class AuthRepository(private val noteAPI: NoteAPI) {
         } catch (exceptionAPI: ExceptionAPI) {
             emit(Resource.Error(exceptionAPI.message))
         } catch (exception: Exception) {
-            debug("register => ${exception.localizedMessage}")
             emit(Resource.Error(exception.localizedMessage))
         }
     }
@@ -40,6 +39,19 @@ class AuthRepository(private val noteAPI: NoteAPI) {
             } else {
                 emit(Resource.Success(null))
             }
+            emit(Resource.Success(response.body()))
+        } catch (exceptionAPI: ExceptionAPI) {
+            emit(Resource.Error(exceptionAPI.message))
+        } catch (exception: Exception) {
+            emit(Resource.Error(exception.localizedMessage))
+        }
+    }
+
+    fun logout(refreshToken: String): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            val payload = mapOf("refreshToken" to refreshToken)
+            val response = noteAPI.logout(payload)
             emit(Resource.Success(response.body()))
         } catch (exceptionAPI: ExceptionAPI) {
             emit(Resource.Error(exceptionAPI.message))
