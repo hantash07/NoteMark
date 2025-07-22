@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AppLoading(
     modifier: Modifier = Modifier,
-    size: Dp = 8.dp,
+    size: Dp = 10.dp,
     color: Color = MaterialTheme.colorScheme.primary,
     animationDelay: Int = 300,
 ) {

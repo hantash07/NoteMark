@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -52,22 +53,28 @@ fun LoginScreen(onNavigateTo: (EnumScreen) -> Unit) {
     val snackBarHost = remember { SnackbarHostState() }
 
     val viewModel: AuthViewModel = hiltViewModel()
+    val uiState = viewModel.uiLoginState.collectAsStateWithLifecycle()
 
     LaunchedEffect(true) {
         viewModel.uiEventFlow.collect { event ->
-            when(event) {
+            when (event) {
                 is UiEvent.Navigate -> {
                     onNavigateTo.invoke(event.enumScreen)
                 }
+
                 is UiEvent.ShowSnackBar -> {
                     snackBarHost.showSnackbar(message = event.message)
                 }
+
                 else -> {}
             }
         }
     }
 
-    Scaffold(
+    LoginScaffold(
+        snackBarHost = {
+            SnackbarHost(snackBarHost)
+        },
         content = { paddingValues ->
             Box(
                 modifier = Modifier
@@ -81,23 +88,56 @@ fun LoginScreen(onNavigateTo: (EnumScreen) -> Unit) {
             ) {
                 when (localScreenOrientation.current) {
                     DevicePosture.MOBILE_PORTRAIT, DevicePosture.TABLET_PORTRAIT -> LoginPortrait(
-                        onNavigateTo
+                        uiState = uiState.value,
+                        onNavigateTo = {
+
+                        },
+                        onLogin = { email, password ->
+                            viewModel.login(email, password)
+                        }
                     )
 
                     DevicePosture.MOBILE_LANDSCAPE, DevicePosture.TABLET_LANDSCAPE -> LoginLandscape(
-                        onNavigateTo
+                        uiState = uiState.value,
+                        onNavigateTo = {
+
+                        },
+                        onLogin = { email, password ->
+                            viewModel.login(email, password)
+                        }
                     )
 
-                    else -> LoginPortrait(onNavigateTo)
+                    else -> LoginPortrait(
+                        uiState = uiState.value,
+                        onNavigateTo = {
+
+                        },
+                        onLogin = { email, password ->
+                            viewModel.login(email, password)
+                        }
+                    )
                 }
             }
-        },
-        snackbarHost = { SnackbarHost(snackBarHost) }
+        }
     )
 }
 
 @Composable
-private fun LoginPortrait(onNavigateTo: (EnumScreen) -> Unit = {}) {
+private fun LoginScaffold(
+    snackBarHost: @Composable () -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit = {}
+) {
+    Scaffold(
+        snackbarHost = snackBarHost,
+        content = content
+    )
+}
+
+@Composable
+private fun LoginPortrait(
+    uiState: UiState<Unit> = UiState.Idle,
+    onNavigateTo: (EnumScreen) -> Unit = {},
+    onLogin: (String, String) -> Unit = {email, password, -> }) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,12 +152,15 @@ private fun LoginPortrait(onNavigateTo: (EnumScreen) -> Unit = {}) {
         TopHeading(title = "Log In", message = "Capture your thoughts and ideas.")
 
         AppSpacer(dp = 24.dp, EnumSpacer.HEIGHT)
-        LoginContent(onNavigateTo)
+        LoginContent(uiState, onNavigateTo, onLogin)
     }
 }
 
 @Composable
-private fun LoginLandscape(onNavigateTo: (EnumScreen) -> Unit = {}) {
+private fun LoginLandscape(
+    uiState: UiState<Unit> = UiState.Idle,
+    onNavigateTo: (EnumScreen) -> Unit = {},
+    onLogin: (String, String) -> Unit = { email, password -> }) {
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -133,15 +176,16 @@ private fun LoginLandscape(onNavigateTo: (EnumScreen) -> Unit = {}) {
             message = "Capture your thoughts and ideas."
         )
 
-        LoginContent(modifier = Modifier.weight(1f), onNavigateTo = onNavigateTo)
+        LoginContent(uiState, onNavigateTo, onLogin)
     }
 }
 
 @Composable
-private fun LoginContent(onNavigateTo: (EnumScreen) -> Unit = {}, modifier: Modifier = Modifier) {
-    val viewModel: AuthViewModel = hiltViewModel()
-    val uiState = viewModel.uiLoginState.collectAsStateWithLifecycle()
-
+private fun LoginContent(
+    uiState: UiState<Unit> = UiState.Idle,
+    onNavigateTo: (EnumScreen) -> Unit = {},
+    onLogin: (String, String) -> Unit = { email, password -> }
+) {
     val focusManager = LocalFocusManager.current
 
     val email = rememberSaveable { mutableStateOf("") }
@@ -156,7 +200,6 @@ private fun LoginContent(onNavigateTo: (EnumScreen) -> Unit = {}, modifier: Modi
     }
 
     Column(
-        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         InputField(
@@ -196,11 +239,11 @@ private fun LoginContent(onNavigateTo: (EnumScreen) -> Unit = {}, modifier: Modi
         AppButton(
             text = "Log in",
             isEnable = isEmailValid.value && isPassword.value,
-            isLoading = (uiState.value is UiState.Loading),
+            isLoading = uiState is UiState.Loading,
             onClick = {
                 focusManager.clearFocus()
-
-                viewModel.login(email.value, password.value)
+                onLogin(email.value, password.value)
+//                viewModel.login(email.value, password.value)
             }
         )
 

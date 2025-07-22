@@ -2,11 +2,15 @@ package com.hantash.notemark.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,22 +34,10 @@ fun SettingsScreen(
     onNavigateTo: (EnumScreen) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    SettingsContent(
-        onNavigateTo = { enumScreen ->
-            onNavigateTo(enumScreen)
-        },
-        onNavigateBack = {
-            onNavigateBack.invoke()
-        })
-}
-
-@Composable
-private fun SettingsContent(
-    onNavigateTo: (EnumScreen) -> Unit = {},
-    onNavigateBack: () -> Unit = {}
-) {
     val viewModel: AuthViewModel = hiltViewModel()
     val uiState = viewModel.uiLogoutState.collectAsStateWithLifecycle()
+
+    val snackBarHost = remember { SnackbarHostState() }
 
     LaunchedEffect(true) {
         viewModel.uiEventFlow.collect { event ->
@@ -56,13 +48,41 @@ private fun SettingsContent(
 
                 is UiEvent.ShowSnackBar -> {
                     debug(event.message)
-//                    snackBarHost.showSnackbar(message = event.message)
+                    snackBarHost.showSnackbar(message = event.message)
                 }
 
                 else -> {}
             }
         }
     }
+
+    SettingsScaffold(
+        onNavigateBack = {
+            onNavigateBack.invoke()
+        },
+        snackBarHost = {
+            SnackbarHost(snackBarHost)
+        },
+        content = { paddingValues ->
+            SettingsContent(
+                modifier = Modifier.padding(paddingValues),
+                uiState = uiState.value,
+                onClickLogout = {
+                    viewModel.logout()
+                }
+            )
+        }
+    )
+}
+
+@Composable
+private fun SettingsScaffold(
+    onNavigateBack: () -> Unit = {},
+    snackBarHost: @Composable () -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit = {
+        SettingsContent(Modifier.padding(it))
+    }
+) {
 
     Scaffold(
         topBar = {
@@ -71,40 +91,45 @@ private fun SettingsContent(
                 onClickBackButton = onNavigateBack
             )
         },
-        content = { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .fillMaxSize()
-                    .background(color = Surface)
-                    .padding(start = 16.dp, end = 16.dp)
-            ) {
-                SettingsItem(
-                    text = "Log out",
-                    icon = R.drawable.ic_logout,
-                    onClick = {
-                        viewModel.logout()
-                    }
-                )
-                if (uiState.value == UiState.Loading) {
-                    AppLoading(
-                        modifier = Modifier.align(Alignment.Center),
-                        size = 12.dp
-                    )
-                }
-            }
-        }
+        snackbarHost = snackBarHost,
+        content = content
     )
+}
+
+@Composable
+private fun SettingsContent(
+    modifier: Modifier = Modifier,
+    uiState: UiState<Unit> = UiState.Idle,
+    onClickLogout: () -> Unit = {}
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = Surface)
+            .padding(start = 16.dp, end = 16.dp)
+    ) {
+        SettingsItem(
+            text = "Log out",
+            icon = R.drawable.ic_logout,
+            onClick = onClickLogout
+        )
+        if (uiState == UiState.Loading) {
+            AppLoading(
+                modifier = Modifier.align(Alignment.Center),
+                size = 16.dp
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun PreviewPortrait() {
-    SettingsContent()
+    SettingsScaffold()
 }
 
 @Preview(showBackground = true, widthDp = 700, heightDp = 350)
 @Composable
 private fun PreviewLandscape() {
-    SettingsContent()
+    SettingsScaffold()
 }

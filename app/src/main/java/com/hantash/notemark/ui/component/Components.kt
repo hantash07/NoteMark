@@ -93,7 +93,7 @@ fun AppButton(
             .fillMaxWidth()
             .height(48.dp),
         shape = RoundedCornerShape(12.dp),
-        enabled = isEnable,
+        enabled = if (isLoading) !isLoading else isEnable,
         onClick = onClick,
     ) {
         if (!isLoading) {
@@ -102,10 +102,7 @@ fun AppButton(
                 style = MaterialTheme.typography.titleSmall
             )
         } else {
-            CircularProgressIndicator(
-                modifier = Modifier.size(40.dp),
-                color = SurfaceLowest
-            )
+            AppLoading()
         }
     }
 }
