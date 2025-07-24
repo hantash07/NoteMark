@@ -112,10 +112,13 @@ fun AppButton(
 fun AppTextButton(
     modifier: Modifier = Modifier,
     text: String = "Text Button",
+    isEnable: Boolean = true,
+    isLoading: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     TextButton(
         onClick = onClick,
+        enabled = if (isLoading) !isLoading else isEnable,
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(

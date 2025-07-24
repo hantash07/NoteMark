@@ -137,7 +137,7 @@ private fun LoginScaffold(
 private fun LoginPortrait(
     uiState: UiState<Unit> = UiState.Idle,
     onNavigateTo: (EnumScreen) -> Unit = {},
-    onLogin: (String, String) -> Unit = {email, password, -> }) {
+    onLogin: (String, String) -> Unit = { _, _ -> }) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -160,7 +160,7 @@ private fun LoginPortrait(
 private fun LoginLandscape(
     uiState: UiState<Unit> = UiState.Idle,
     onNavigateTo: (EnumScreen) -> Unit = {},
-    onLogin: (String, String) -> Unit = { email, password -> }) {
+    onLogin: (String, String) -> Unit = { _, _ -> }) {
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -184,7 +184,7 @@ private fun LoginLandscape(
 private fun LoginContent(
     uiState: UiState<Unit> = UiState.Idle,
     onNavigateTo: (EnumScreen) -> Unit = {},
-    onLogin: (String, String) -> Unit = { email, password -> }
+    onLogin: (String, String) -> Unit = { _, _ -> }
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -243,13 +243,13 @@ private fun LoginContent(
             onClick = {
                 focusManager.clearFocus()
                 onLogin(email.value, password.value)
-//                viewModel.login(email.value, password.value)
             }
         )
 
         AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
         AppTextButton(
             text = "Don't have an account?",
+            isLoading = uiState is UiState.Loading,
             onClick = {
                 onNavigateTo.invoke(EnumScreen.SIGN_UP)
             }
