@@ -1,6 +1,13 @@
 package com.hantash.notemark.ui.screen
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +25,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,7 +49,9 @@ import com.hantash.notemark.utils.EnumDateFormater
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.utils.toReadableDate
 import com.hantash.notemark.viewmodel.NoteViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun NoteDetailScreen(
@@ -45,7 +59,12 @@ fun NoteDetailScreen(
     onNavWithArguments: (EnumScreen, String) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val modifierContent = when (localScreenOrientation.current) {
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val screenOrientation = localScreenOrientation.current
+    val modifierContent = when (screenOrientation) {
         DevicePosture.MOBILE_PORTRAIT -> Modifier.fillMaxWidth()
         else -> Modifier.width(540.dp)
     }
@@ -54,14 +73,30 @@ fun NoteDetailScreen(
     val noteState = noteViewModel.noteStateFlow.collectAsState()
 
     val noteMode = rememberSaveable { mutableStateOf(EnumNoteMode.VIEW) }
+    val isHideAlternativeUI = rememberSaveable { mutableStateOf(false) }
+    val hideUiJob = rememberSaveable { mutableStateOf<Job?>(null) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(noteId) {
         noteViewModel.getNote(noteId)
-        noteMode.value = EnumNoteMode.VIEW
+        noteMode.value = if (noteMode.value == EnumNoteMode.READER) EnumNoteMode.READER else EnumNoteMode.VIEW
+    }
+
+    fun hideUIAfterDelay() {
+        hideUiJob.value?.cancel() // cancel previous timer
+        hideUiJob.value = scope.launch {
+            delay(5000)
+            isHideAlternativeUI.value = true
+        }
     }
 
     NoteDetailScaffold(
+        isHideAlternativeUI = isHideAlternativeUI.value,
         onNavigateBack = {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            noteMode.value = EnumNoteMode.VIEW
+            isHideAlternativeUI.value = false
+
             onNavigateBack.invoke()
         },
         content = { paddingValues ->
@@ -70,23 +105,34 @@ fun NoteDetailScreen(
                     note = note,
                     modifier = Modifier.padding(paddingValues),
                     modifierContent = modifierContent,
+                    isHideAlternativeUI = isHideAlternativeUI.value,
                     noteMode = noteMode.value,
                     onChangeMode = { mode ->
-                        noteMode.value = mode
-
                         when(mode) {
-                            EnumNoteMode.VIEW -> {
-
-                            }
                             EnumNoteMode.EDIT -> {
                                 if (noteId.isNotEmpty()) {
                                     onNavWithArguments(EnumScreen.NOTE_ADD_EDIT, noteId)
                                 }
+                                noteMode.value = mode
                             }
                             EnumNoteMode.READER -> {
-
+                                if (noteMode.value == mode) {
+                                    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                                    noteMode.value = EnumNoteMode.VIEW
+                                    isHideAlternativeUI.value = false
+                                }
+                                if (configuration.screenWidthDp < 600 && screenOrientation == DevicePosture.MOBILE_PORTRAIT) {
+                                   activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                                    noteMode.value = mode
+                                    isHideAlternativeUI.value = true
+                                }
                             }
+                            else -> {}
                         }
+                    },
+                    onTapScreen = {
+                        isHideAlternativeUI.value = false
+                        hideUIAfterDelay()
                     }
                 )
             }
@@ -96,6 +142,7 @@ fun NoteDetailScreen(
 
 @Composable
 private fun NoteDetailScaffold(
+    isHideAlternativeUI: Boolean = false,
     onNavigateBack: () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit = { paddingValues ->
         Content(modifier = Modifier.padding(paddingValues))
@@ -103,11 +150,17 @@ private fun NoteDetailScaffold(
 ) {
     Scaffold(
         topBar = {
-            BaseAppBar(
-                enumScreen = EnumScreen.NOTE_DETAIL,
-                title = "ALL NOTES",
-                onClickBackButton = onNavigateBack
-            )
+            AnimatedVisibility(
+                visible = !isHideAlternativeUI,
+                enter = fadeIn(tween(500)),
+                exit = fadeOut(tween(500))
+            ) {
+                BaseAppBar(
+                    enumScreen = EnumScreen.NOTE_DETAIL,
+                    title = "ALL NOTES",
+                    onClickBackButton = onNavigateBack
+                )
+            }
         },
         content = content
     )
@@ -117,13 +170,20 @@ private fun NoteDetailScaffold(
 private fun Content(
     modifier: Modifier = Modifier.fillMaxSize(),
     modifierContent: Modifier = Modifier,
+    isHideAlternativeUI: Boolean = false,
     note: Note = Note(),
     noteMode: EnumNoteMode = EnumNoteMode.VIEW,
-    onChangeMode: (EnumNoteMode) -> Unit = {}
+    onChangeMode: (EnumNoteMode) -> Unit = {},
+    onTapScreen: (Offset) -> Unit = {}
 ) {
     Box(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = onTapScreen
+                )
+            }
             .background(color = Surface),
         contentAlignment = Alignment.Center
     ) {
@@ -165,11 +225,17 @@ private fun Content(
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            EditReaderMode(
-                modifier = Modifier.padding(bottom = 16.dp),
-                noteMode = noteMode,
-                onChangeMode = onChangeMode
-            )
+            AnimatedVisibility(
+                visible = !isHideAlternativeUI,
+                enter = fadeIn(tween(500)),
+                exit = fadeOut(tween(500))
+            ) {
+                EditReaderMode(
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    noteMode = noteMode,
+                    onChangeMode = onChangeMode
+                )
+            }
         }
     }
 }
