@@ -50,6 +50,12 @@ enum class EnumSpacer {
     HEIGHT
 }
 
+enum class EnumNoteMode {
+    VIEW,
+    EDIT,
+    READER
+}
+
 @Composable
 fun AppSpacer(dp: Dp, enumSpacer: EnumSpacer) {
     Spacer(
@@ -113,12 +119,11 @@ fun AppTextButton(
     modifier: Modifier = Modifier,
     text: String = "Text Button",
     isEnable: Boolean = true,
-    isLoading: Boolean = false,
     onClick: () -> Unit = {},
 ) {
     TextButton(
         onClick = onClick,
-        enabled = if (isLoading) !isLoading else isEnable,
+        enabled = isEnable,
         shape = RoundedCornerShape(12.dp)
     ) {
         Text(
@@ -237,37 +242,50 @@ fun NoteDetailSection(
 
 @Preview(showBackground = true)
 @Composable
-fun EditPreviewNote(
+fun EditReaderMode(
     modifier: Modifier = Modifier,
-    onClickEdit: () -> Unit = {},
-    onPreviewLandscape: () -> Unit = {},
+    noteMode: EnumNoteMode = EnumNoteMode.VIEW,
+    onChangeMode: (EnumNoteMode) -> Unit = {}
 ) {
+
     Row(
         modifier = modifier
             .background(
                 color = OnSurfaceOpacity12,
                 shape = RoundedCornerShape(corner = CornerSize(16.dp))
-            ),
+            )
+            .padding(4.dp),
     ) {
         IconButton(
-            modifier = Modifier.padding(2.dp),
-            onClick = onClickEdit) {
+            modifier = Modifier
+                .background(
+                    color = if (noteMode == EnumNoteMode.EDIT) Primary.copy(alpha = 0.1F) else Color.Transparent,
+                    shape = RoundedCornerShape(corner = CornerSize(12.dp))
+                ),
+            onClick = { onChangeMode.invoke(EnumNoteMode.EDIT) }
+        ) {
             Icon(
                 painter = painterResource(R.drawable.ic_edit),
-                contentDescription = "Edit Icon"
+                contentDescription = "Edit Icon",
+                tint = if (noteMode == EnumNoteMode.EDIT) Primary else OnSurface,
             )
         }
         IconButton(
-            modifier = Modifier.padding(2.dp),
-            onClick = onPreviewLandscape) {
+            modifier = Modifier
+                .background(
+                    color = if (noteMode == EnumNoteMode.READER) Primary.copy(alpha = 0.1F) else Color.Transparent,
+                    shape = RoundedCornerShape(corner = CornerSize(12.dp))
+                ),
+            onClick = { onChangeMode.invoke(EnumNoteMode.READER) }
+        ) {
             Icon(
                 painter = painterResource(R.drawable.ic_preview),
-                contentDescription = "Preview Icon"
+                contentDescription = "Preview Icon",
+                tint = if (noteMode == EnumNoteMode.READER) Primary else OnSurface,
             )
         }
     }
 }
-
 
 
 

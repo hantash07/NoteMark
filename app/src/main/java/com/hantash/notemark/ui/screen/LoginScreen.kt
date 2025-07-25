@@ -89,9 +89,7 @@ fun LoginScreen(onNavigateTo: (EnumScreen) -> Unit) {
                 when (localScreenOrientation.current) {
                     DevicePosture.MOBILE_PORTRAIT, DevicePosture.TABLET_PORTRAIT -> LoginPortrait(
                         uiState = uiState.value,
-                        onNavigateTo = {
-
-                        },
+                        onNavigateTo = onNavigateTo,
                         onLogin = { email, password ->
                             viewModel.login(email, password)
                         }
@@ -99,9 +97,7 @@ fun LoginScreen(onNavigateTo: (EnumScreen) -> Unit) {
 
                     DevicePosture.MOBILE_LANDSCAPE, DevicePosture.TABLET_LANDSCAPE -> LoginLandscape(
                         uiState = uiState.value,
-                        onNavigateTo = {
-
-                        },
+                        onNavigateTo = onNavigateTo,
                         onLogin = { email, password ->
                             viewModel.login(email, password)
                         }
@@ -109,9 +105,7 @@ fun LoginScreen(onNavigateTo: (EnumScreen) -> Unit) {
 
                     else -> LoginPortrait(
                         uiState = uiState.value,
-                        onNavigateTo = {
-
-                        },
+                        onNavigateTo = onNavigateTo,
                         onLogin = { email, password ->
                             viewModel.login(email, password)
                         }
@@ -249,7 +243,7 @@ private fun LoginContent(
         AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
         AppTextButton(
             text = "Don't have an account?",
-            isLoading = uiState is UiState.Loading,
+            isEnable = uiState is UiState.Idle,
             onClick = {
                 onNavigateTo.invoke(EnumScreen.SIGN_UP)
             }

@@ -332,9 +332,13 @@ private fun SignUpContent(
         )
 
         AppSpacer(dp = 8.dp, EnumSpacer.HEIGHT)
-        AppTextButton(text = "Already have an account?", onClick = {
-            onNavigateTo.invoke(EnumScreen.LOGIN)
-        })
+        AppTextButton(
+            text = "Already have an account?",
+            isEnable = uiState is UiState.Idle,
+            onClick = {
+                onNavigateTo.invoke(EnumScreen.LOGIN)
+            }
+        )
     }
 }
 

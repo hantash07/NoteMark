@@ -17,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,14 +27,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.hantash.notemark.DevicePosture
 import com.hantash.notemark.model.Note
 import com.hantash.notemark.ui.component.BaseAppBar
-import com.hantash.notemark.ui.component.EditPreviewNote
+import com.hantash.notemark.ui.component.EditReaderMode
+import com.hantash.notemark.ui.component.EnumNoteMode
 import com.hantash.notemark.ui.component.NoteDetailSection
 import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
 import com.hantash.notemark.ui.theme.Surface
+import com.hantash.notemark.utils.EnumDateFormater
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.utils.toReadableDate
 import com.hantash.notemark.viewmodel.NoteViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun NoteDetailScreen(
@@ -48,8 +53,11 @@ fun NoteDetailScreen(
     val noteViewModel: NoteViewModel = hiltViewModel()
     val noteState = noteViewModel.noteStateFlow.collectAsState()
 
+    val noteMode = rememberSaveable { mutableStateOf(EnumNoteMode.VIEW) }
+
     LaunchedEffect(noteId) {
         noteViewModel.getNote(noteId)
+        noteMode.value = EnumNoteMode.VIEW
     }
 
     NoteDetailScaffold(
@@ -62,13 +70,23 @@ fun NoteDetailScreen(
                     note = note,
                     modifier = Modifier.padding(paddingValues),
                     modifierContent = modifierContent,
-                    onUpdateNote = {
-                        if (noteId.isNotEmpty()) {
-                            onNavWithArguments(EnumScreen.NOTE_ADD_EDIT, noteId)
-                        }
-                    },
-                    onPreviewLandscape = {
+                    noteMode = noteMode.value,
+                    onChangeMode = { mode ->
+                        noteMode.value = mode
 
+                        when(mode) {
+                            EnumNoteMode.VIEW -> {
+
+                            }
+                            EnumNoteMode.EDIT -> {
+                                if (noteId.isNotEmpty()) {
+                                    onNavWithArguments(EnumScreen.NOTE_ADD_EDIT, noteId)
+                                }
+                            }
+                            EnumNoteMode.READER -> {
+
+                            }
+                        }
                     }
                 )
             }
@@ -100,8 +118,8 @@ private fun Content(
     modifier: Modifier = Modifier.fillMaxSize(),
     modifierContent: Modifier = Modifier,
     note: Note = Note(),
-    onPreviewLandscape: () -> Unit = {},
-    onUpdateNote: () -> Unit = {}
+    noteMode: EnumNoteMode = EnumNoteMode.VIEW,
+    onChangeMode: (EnumNoteMode) -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -130,12 +148,12 @@ private fun Content(
                 NoteDetailSection(
                     modifier = Modifier.weight(1f),
                     title = "Date created",
-                    description = note.createdAt.toReadableDate()
+                    description = note.createdAt.toReadableDate(EnumDateFormater.DISPLAY)
                 )
                 NoteDetailSection(
                     modifier = Modifier.weight(1f),
                     title = "Last edited",
-                    description = note.lastEditedAt.toReadableDate()
+                    description = note.lastEditedAt.toReadableDate(EnumDateFormater.DISPLAY)
                 )
             }
 
@@ -147,10 +165,10 @@ private fun Content(
                 style = MaterialTheme.typography.bodyLarge
             )
 
-            EditPreviewNote(
+            EditReaderMode(
                 modifier = Modifier.padding(bottom = 16.dp),
-                onClickEdit = onUpdateNote,
-                onPreviewLandscape = onPreviewLandscape
+                noteMode = noteMode,
+                onChangeMode = onChangeMode
             )
         }
     }

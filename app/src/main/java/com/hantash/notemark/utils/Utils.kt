@@ -10,9 +10,19 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.hantash.notemark.DevicePosture
+import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+
+enum class EnumDateFormater(val pattern: String) {
+    SIMPLE("dd MMM"),
+    SIMPLE_YEAR("dd MMM yyyy"),
+    DISPLAY("dd MMM yyyy, HH:mm");
+
+    val formatter: DateTimeFormatter
+        get() = DateTimeFormatter.ofPattern(pattern)
+}
 
 fun debug(message: String) {
     Log.d(Constant.APP_DEBUG, message)
@@ -40,12 +50,24 @@ fun String.beautifyUsername(): String {
     }.toUpperCase(Locale.current)
 }
 
-fun Instant.toReadableDate(): String {
+fun Instant.toReadableDate(enumDateFormat: EnumDateFormater = EnumDateFormater.SIMPLE): String {
     val nowYear = Instant.now().atZone(ZoneId.systemDefault()).year
     val isSameYear = this.atZone(ZoneId.systemDefault()).year == nowYear
-    val pattern = if (isSameYear) "dd MMM" else "dd MMM yyyy"
+    val dateFormater = if (enumDateFormat == EnumDateFormater.SIMPLE) {
+        if (isSameYear) EnumDateFormater.SIMPLE.formatter  else EnumDateFormater.SIMPLE_YEAR.formatter
+    } else {
+        enumDateFormat.formatter
+    }
 
-    val formatter = DateTimeFormatter.ofPattern(pattern)
+    if (enumDateFormat == EnumDateFormater.DISPLAY) {
+        val now = Instant.now()
+        val duration = Duration.between(this, now)
+        if (duration.toMinutes() < 5) {
+            return  "Just now"
+        }
+    }
+
+    val formatter = dateFormater
         .withLocale(java.util.Locale.getDefault())
         .withZone(ZoneId.systemDefault())
     return formatter.format(this)
