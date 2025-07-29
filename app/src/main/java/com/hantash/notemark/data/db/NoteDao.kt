@@ -27,5 +27,5 @@ interface NoteDao {
     fun fetch(): Flow<List<Note>>
 
     @Query("SELECT * FROM Note WHERE id =:id")
-    fun fetch(id: String): Flow<Note>
+    fun fetch(id: String): Flow<Note?>
 }

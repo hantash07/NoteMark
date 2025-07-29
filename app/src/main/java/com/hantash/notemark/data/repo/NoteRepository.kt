@@ -24,7 +24,7 @@ class NoteRepository(private val noteDao: NoteDao) {
         noteDao.clearNotes()
     }
 
-    fun fetchById(id: String): Flow<Note> {
+    fun fetchById(id: String): Flow<Note?> {
         return noteDao.fetch(id)
     }
 

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -147,7 +148,7 @@ private fun Content(
     Surface(
         modifier = modifier
             .fillMaxSize()
-            .background(color = OnSurfaceOpacity12)
+            .background(color = MaterialTheme.colorScheme.surface)
     ) {
         if (notes.isEmpty()) {
             Box(
@@ -162,11 +163,11 @@ private fun Content(
             }
         } else {
             LazyVerticalStaggeredGrid(
-                modifier = Modifier.fillMaxSize(),
-                columns = StaggeredGridCells.Fixed(2),
-                verticalItemSpacing = 8.dp,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(8.dp)
+                modifier = Modifier.fillMaxSize().padding(start = if (contentMaxLength == Constant.CONTENT_LENGTH_PORTRAIT) 0.dp else 32.dp ),
+                columns = StaggeredGridCells.Fixed( if (contentMaxLength == Constant.CONTENT_LENGTH_PORTRAIT) 2 else 3 ),
+                verticalItemSpacing = 16.dp,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(16.dp)
             ) {
                 items(notes) { note ->
                     NoteItem(note, contentMaxLength, onDelete = onDelete, onPreview = onPreview)

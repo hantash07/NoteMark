@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -86,6 +87,17 @@ class NoteViewModel @Inject constructor(private val noteRepository: NoteReposito
         viewModelScope.launch {
             _uiEventFlow.emit(UiEvent.DeleteNote(note))
         }
+    }
+
+    suspend fun isNoteUpdated(note: Note): Boolean {
+        val noteDB = noteRepository.fetchById(note.id.toString()).firstOrNull()
+
+        noteDB?.let {
+            return it.title.lowercase().trim() != note.title.lowercase().trim()
+                    || it.content.lowercase().trim() != note.content.lowercase().trim()
+        }
+
+        return false
     }
 
 }

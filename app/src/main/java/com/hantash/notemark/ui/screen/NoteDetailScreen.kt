@@ -13,10 +13,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -25,11 +29,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -63,8 +69,8 @@ fun NoteDetailScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
-    val screenOrientation = localScreenOrientation.current
-    val modifierContent = when (screenOrientation) {
+    val devicePosture = localScreenOrientation.current
+    val modifierContent = when (devicePosture) {
         DevicePosture.MOBILE_PORTRAIT -> Modifier.fillMaxWidth()
         else -> Modifier.width(540.dp)
     }
@@ -74,7 +80,7 @@ fun NoteDetailScreen(
 
     val noteMode = rememberSaveable { mutableStateOf(EnumNoteMode.VIEW) }
     val isHideAlternativeUI = rememberSaveable { mutableStateOf(false) }
-    val hideUiJob = rememberSaveable { mutableStateOf<Job?>(null) }
+    val hideUiJob = remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(noteId) {
@@ -82,22 +88,49 @@ fun NoteDetailScreen(
         noteMode.value = if (noteMode.value == EnumNoteMode.READER) EnumNoteMode.READER else EnumNoteMode.VIEW
     }
 
-    fun hideUIAfterDelay() {
-        hideUiJob.value?.cancel() // cancel previous timer
+    fun stopTimer() {
+        isHideAlternativeUI.value = false
+        hideUiJob.value?.cancel()
+    }
+
+    fun startTimer() {
+        stopTimer()
         hideUiJob.value = scope.launch {
             delay(5000)
             isHideAlternativeUI.value = true
         }
     }
 
+    fun updateReaderMode(mode: EnumNoteMode) {
+        // If the previous pne and selected NoteMode is READER, then put it back to normal state
+        if (noteMode.value == mode) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            stopTimer()
+
+            noteMode.value = EnumNoteMode.VIEW
+        }
+        if (configuration.screenWidthDp < 600 && devicePosture == DevicePosture.MOBILE_PORTRAIT) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            isHideAlternativeUI.value = true
+
+            noteMode.value = mode
+        }
+    }
+
     NoteDetailScaffold(
+        devicePosture = devicePosture,
         isHideAlternativeUI = isHideAlternativeUI.value,
         onNavigateBack = {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            noteMode.value = EnumNoteMode.VIEW
-            isHideAlternativeUI.value = false
+            if (noteMode.value == EnumNoteMode.READER) {
+                updateReaderMode(noteMode.value)
+            }
 
             onNavigateBack.invoke()
+        },
+        onTapScreen = {
+            if (noteMode.value == EnumNoteMode.READER) {
+                startTimer()
+            }
         },
         content = { paddingValues ->
             noteState.value?.let { note ->
@@ -116,23 +149,15 @@ fun NoteDetailScreen(
                                 noteMode.value = mode
                             }
                             EnumNoteMode.READER -> {
-                                if (noteMode.value == mode) {
-                                    activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                                    noteMode.value = EnumNoteMode.VIEW
-                                    isHideAlternativeUI.value = false
-                                }
-                                if (configuration.screenWidthDp < 600 && screenOrientation == DevicePosture.MOBILE_PORTRAIT) {
-                                   activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                                    noteMode.value = mode
-                                    isHideAlternativeUI.value = true
-                                }
+                                updateReaderMode(mode)
                             }
                             else -> {}
                         }
                     },
                     onTapScreen = {
-                        isHideAlternativeUI.value = false
-                        hideUIAfterDelay()
+                        if (noteMode.value == EnumNoteMode.READER) {
+                            startTimer()
+                        }
                     }
                 )
             }
@@ -142,28 +167,56 @@ fun NoteDetailScreen(
 
 @Composable
 private fun NoteDetailScaffold(
+    devicePosture: DevicePosture = DevicePosture.MOBILE_PORTRAIT,
     isHideAlternativeUI: Boolean = false,
     onNavigateBack: () -> Unit = {},
+    onTapScreen: (Offset) -> Unit = {},
     content: @Composable (PaddingValues) -> Unit = { paddingValues ->
         Content(modifier = Modifier.padding(paddingValues))
     }
 ) {
-    Scaffold(
-        topBar = {
-            AnimatedVisibility(
-                visible = !isHideAlternativeUI,
-                enter = fadeIn(tween(500)),
-                exit = fadeOut(tween(500))
-            ) {
+
+    if (devicePosture == DevicePosture.MOBILE_PORTRAIT || devicePosture == DevicePosture.TABLET_PORTRAIT) {
+        Scaffold(
+            topBar = {
                 BaseAppBar(
+                    Modifier.fillMaxWidth(),
                     enumScreen = EnumScreen.NOTE_DETAIL,
                     title = "ALL NOTES",
+                    isAnimate = isHideAlternativeUI,
+                    onClickBackButton = onNavigateBack
+                )
+            },
+            content = content
+        )
+    } else {
+        Row(
+            modifier = Modifier.background(color = Surface)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = onTapScreen
+                    )
+                }
+        ) {
+            Box(
+                modifier = Modifier.weight(2f),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                BaseAppBar(
+                    modifier = Modifier.wrapContentWidth(),
+                    enumScreen = EnumScreen.NOTE_DETAIL,
+                    title = "ALL NOTES",
+                    isAnimate = isHideAlternativeUI,
                     onClickBackButton = onNavigateBack
                 )
             }
-        },
-        content = content
-    )
+            Box(
+                modifier = Modifier.weight(8f),
+            ) {
+                content(WindowInsets.systemBars.asPaddingValues())
+            }
+        }
+    }
 }
 
 @Composable
@@ -185,7 +238,7 @@ private fun Content(
                 )
             }
             .background(color = Surface),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.BottomCenter
     ) {
         Column(
             modifier = modifierContent,
@@ -220,22 +273,24 @@ private fun Content(
             HorizontalDivider(color = OnSurfaceOpacity12)
 
             Text(
-                modifier = Modifier.weight(1f).padding(16.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(16.dp),
                 text = note.content,
                 style = MaterialTheme.typography.bodyLarge
             )
+        }
 
-            AnimatedVisibility(
-                visible = !isHideAlternativeUI,
-                enter = fadeIn(tween(500)),
-                exit = fadeOut(tween(500))
-            ) {
-                EditReaderMode(
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    noteMode = noteMode,
-                    onChangeMode = onChangeMode
-                )
-            }
+        AnimatedVisibility(
+            visible = !isHideAlternativeUI,
+            enter = fadeIn(tween(500)),
+            exit = fadeOut(tween(500))
+        ) {
+            EditReaderMode(
+                modifier = Modifier.padding(bottom = 16.dp),
+                noteMode = noteMode,
+                onChangeMode = onChangeMode
+            )
         }
     }
 }
@@ -249,5 +304,5 @@ private fun PreviewPortrait() {
 @Preview(showBackground = true, widthDp = 700, heightDp = 350)
 @Composable
 private fun PreviewLandscape() {
-    NoteDetailScaffold()
+    NoteDetailScaffold(devicePosture = DevicePosture.MOBILE_LANDSCAPE)
 }
