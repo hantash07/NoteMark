@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -17,10 +18,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,10 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -70,10 +74,6 @@ fun NoteDetailScreen(
     val activity = context as? Activity
 
     val devicePosture = localScreenOrientation.current
-    val modifierContent = when (devicePosture) {
-        DevicePosture.MOBILE_PORTRAIT -> Modifier.fillMaxWidth()
-        else -> Modifier.width(540.dp)
-    }
 
     val noteViewModel: NoteViewModel = hiltViewModel()
     val noteState = noteViewModel.noteStateFlow.collectAsState()
@@ -82,10 +82,19 @@ fun NoteDetailScreen(
     val isHideAlternativeUI = rememberSaveable { mutableStateOf(false) }
     val hideUiJob = remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
+    val isScrolling = remember { mutableStateOf(false) }
 
     LaunchedEffect(noteId) {
         noteViewModel.getNote(noteId)
         noteMode.value = if (noteMode.value == EnumNoteMode.READER) EnumNoteMode.READER else EnumNoteMode.VIEW
+    }
+
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.isScrollInProgress }
+            .collect { scrolling ->
+                isScrolling.value = scrolling
+            }
     }
 
     fun stopTimer() {
@@ -94,10 +103,12 @@ fun NoteDetailScreen(
     }
 
     fun startTimer() {
-        stopTimer()
-        hideUiJob.value = scope.launch {
-            delay(5000)
-            isHideAlternativeUI.value = true
+        if (noteMode.value == EnumNoteMode.READER) {
+            stopTimer()
+            hideUiJob.value = scope.launch {
+                delay(5000)
+                isHideAlternativeUI.value = true
+            }
         }
     }
 
@@ -128,16 +139,13 @@ fun NoteDetailScreen(
             onNavigateBack.invoke()
         },
         onTapScreen = {
-            if (noteMode.value == EnumNoteMode.READER) {
-                startTimer()
-            }
+            startTimer()
         },
         content = { paddingValues ->
             noteState.value?.let { note ->
                 Content(
                     note = note,
                     modifier = Modifier.padding(paddingValues),
-                    modifierContent = modifierContent,
                     isHideAlternativeUI = isHideAlternativeUI.value,
                     noteMode = noteMode.value,
                     onChangeMode = { mode ->
@@ -155,9 +163,12 @@ fun NoteDetailScreen(
                         }
                     },
                     onTapScreen = {
-                        if (noteMode.value == EnumNoteMode.READER) {
-                            startTimer()
-                        }
+                        startTimer()
+                    },
+                    isScrolling = isScrolling.value,
+                    scrollState = scrollState,
+                    onScrollScreen = {
+                        startTimer()
                     }
                 )
             }
@@ -213,7 +224,13 @@ private fun NoteDetailScaffold(
             Box(
                 modifier = Modifier.weight(8f),
             ) {
-                content(WindowInsets.systemBars.asPaddingValues())
+                Box(
+                    modifier = Modifier
+                        .padding(WindowInsets.systemBars.asPaddingValues())
+                        .width(540.dp)
+                ) {
+                    content(PaddingValues())
+                }
             }
         }
     }
@@ -222,13 +239,22 @@ private fun NoteDetailScaffold(
 @Composable
 private fun Content(
     modifier: Modifier = Modifier.fillMaxSize(),
-    modifierContent: Modifier = Modifier,
     isHideAlternativeUI: Boolean = false,
     note: Note = Note(),
+    scrollState: ScrollState = rememberScrollState(),
+    isScrolling: Boolean = false,
     noteMode: EnumNoteMode = EnumNoteMode.VIEW,
     onChangeMode: (EnumNoteMode) -> Unit = {},
-    onTapScreen: (Offset) -> Unit = {}
+    onTapScreen: (Offset) -> Unit = {},
+    onScrollScreen: () -> Unit = {}
 ) {
+
+    LaunchedEffect(isScrolling) {
+        if (isScrolling) {
+            onScrollScreen()
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -241,7 +267,10 @@ private fun Content(
         contentAlignment = Alignment.BottomCenter
     ) {
         Column(
-            modifier = modifierContent,
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -274,7 +303,7 @@ private fun Content(
 
             Text(
                 modifier = Modifier
-                    .weight(1f)
+                    .fillMaxSize()
                     .padding(16.dp),
                 text = note.content,
                 style = MaterialTheme.typography.bodyLarge

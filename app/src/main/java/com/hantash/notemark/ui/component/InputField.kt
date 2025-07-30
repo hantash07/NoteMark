@@ -177,6 +177,9 @@ fun NotesField(
     enumNoteField: EnumNoteField = TITLE,
     value: String = "",
     placeholder: String = "Note Title",
+    keyboardType: KeyboardType = KeyboardType.Text,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    imeAction: ImeAction = ImeAction.Next,
     onValueChange: (String) -> Unit = {},
 ) {
     TextField(
@@ -202,7 +205,12 @@ fun NotesField(
             unfocusedContainerColor = Color.Transparent,
             focusedIndicatorColor = if (enumNoteField == TITLE) OnSurfaceOpacity12 else Color.Transparent,
             unfocusedIndicatorColor = if (enumNoteField == TITLE) OnSurfaceOpacity12 else Color.Transparent,
-        )
+        ),
+        keyboardActions = keyboardActions,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = imeAction
+        ),
     )
 }
 
