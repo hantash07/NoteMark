@@ -1,5 +1,6 @@
 package com.hantash.notemark.utils
 
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
 object Constant {
@@ -12,9 +13,10 @@ object Constant {
     const val CONTENT_LENGTH_LANDSCAPE = 250
 }
 
-object UserPreferencesKeys {
+object PreferencesKeys {
     val USERNAME = stringPreferencesKey("username")
     val EMAIL = stringPreferencesKey("email")
     val ACCESS_TOKEN = stringPreferencesKey("access_token")
     val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+    val LAST_SYNC = longPreferencesKey("last_sync")
 }

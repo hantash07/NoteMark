@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import com.hantash.notemark.model.Converters
 import com.hantash.notemark.model.Note
 
-@Database(entities = [Note::class], version = 1, exportSchema = false)
+@Database(entities = [Note::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class LocalDatabase: RoomDatabase() {
     abstract fun noteDao(): NoteDao

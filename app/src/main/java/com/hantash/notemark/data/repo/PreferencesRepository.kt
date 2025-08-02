@@ -3,30 +3,41 @@ package com.hantash.notemark.data.repo
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.hantash.notemark.model.User
-import com.hantash.notemark.utils.UserPreferencesKeys
+import com.hantash.notemark.utils.PreferencesKeys
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 
 class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
+    // User Preferences
     val accessToken: Flow<String> = dataStore.data.map {
-        it[UserPreferencesKeys.ACCESS_TOKEN] ?: ""
+        it[PreferencesKeys.ACCESS_TOKEN] ?: ""
     }
 
     val refreshToken: Flow<String> = dataStore.data.map {
-        it[UserPreferencesKeys.REFRESH_TOKEN] ?: ""
+        it[PreferencesKeys.REFRESH_TOKEN] ?: ""
     }
 
     val username: Flow<String> = dataStore.data.map {
-        it[UserPreferencesKeys.USERNAME] ?: ""
+        it[PreferencesKeys.USERNAME] ?: ""
     }
 
     suspend fun save(username: String, accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
-            preferences[UserPreferencesKeys.USERNAME] = username
-            preferences[UserPreferencesKeys.ACCESS_TOKEN] = accessToken
-            preferences[UserPreferencesKeys.REFRESH_TOKEN] = refreshToken
+            preferences[PreferencesKeys.USERNAME] = username
+            preferences[PreferencesKeys.ACCESS_TOKEN] = accessToken
+            preferences[PreferencesKeys.REFRESH_TOKEN] = refreshToken
+        }
+    }
+
+    // Sync Data Preferences
+    val lastSyncFlow: Flow<Instant?> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.LAST_SYNC]?.let { Instant.ofEpochMilli(it) }
+    }
+
+    suspend fun savaLastSync(date: Instant) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_SYNC] = date.toEpochMilli()
         }
     }
 

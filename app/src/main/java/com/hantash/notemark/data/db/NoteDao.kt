@@ -28,4 +28,8 @@ interface NoteDao {
 
     @Query("SELECT * FROM Note WHERE id =:id")
     fun fetch(id: String): Flow<Note?>
+
+    @Query("SELECT * FROM Note WHERE isSync = 0")
+    fun getPendingNotes(): Flow<List<Note>>
+
 }

@@ -52,11 +52,11 @@ class AppModule {
     @Provides
     @AppScope
     fun localDatabase(@ApplicationContext context: Context): LocalDatabase {
-        return Room.databaseBuilder(
+       return  Room.databaseBuilder(
             context,
             LocalDatabase::class.java,
             name = "local_db"
-        ).fallbackToDestructiveMigrationFrom().build()
+        ).fallbackToDestructiveMigrationFrom(true, 1).build()
     }
 
     @Provides

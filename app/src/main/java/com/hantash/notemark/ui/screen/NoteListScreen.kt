@@ -42,6 +42,7 @@ import com.hantash.notemark.utils.Constant
 import com.hantash.notemark.utils.beautifyUsername
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.viewmodel.AuthViewModel
+import com.hantash.notemark.viewmodel.ConnectivityViewModel
 import com.hantash.notemark.viewmodel.NoteViewModel
 
 @Composable
@@ -54,11 +55,14 @@ fun NoteListScreen(
         else -> Constant.CONTENT_LENGTH_LANDSCAPE
     }
 
+    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
+    val connectivityState = connectivityViewModel.isConnected.collectAsState(false)
+
     val authViewModel: AuthViewModel = hiltViewModel()
     val usernameState = authViewModel.usernameState.collectAsState(initial = "")
 
     val noteViewModel: NoteViewModel = hiltViewModel()
-    val notesState = noteViewModel.notesStateFlow.collectAsState(initial = emptyList())
+    val notesState = noteViewModel.notesState.collectAsState(initial = emptyList())
 
     val showDialog = rememberSaveable { mutableStateOf(false) }
     val noteToDelete = rememberSaveable { mutableStateOf<Note?>(null) }
@@ -74,6 +78,7 @@ fun NoteListScreen(
 
     NoteListScaffold(
         username = usernameState.value.beautifyUsername(),
+        isConnected = connectivityState.value,
         onClickSettings = {
             onNavigateTo(SETTINGS)
         },
@@ -117,6 +122,7 @@ fun NoteListScreen(
 @Composable
 private fun NoteListScaffold(
     username: String = "",
+    isConnected: Boolean = false,
     onClickSettings: () -> Unit = {},
     onAddNotes: () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit = {}
@@ -124,6 +130,7 @@ private fun NoteListScaffold(
     Scaffold(
         topBar = {
             BaseAppBar(
+                isConnected = isConnected,
                 enumScreen = NOTE_LIST,
                 username = username,
                 onClickSettings = onClickSettings

@@ -26,5 +26,5 @@ class ViewModelModule {
 
     @Provides
     @ViewModelScoped
-    fun noteRepository(noteDao: NoteDao) = NoteRepository(noteDao)
+    fun noteRepository(noteDao: NoteDao, noteAPI: NoteAPI) = NoteRepository(noteDao, noteAPI)
 }

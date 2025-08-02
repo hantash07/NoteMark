@@ -50,6 +50,32 @@ fun String.beautifyUsername(): String {
     }.toUpperCase(Locale.current)
 }
 
+fun Instant?.beatifyLastSync(): String {
+    if (this == null) {
+        return "Never synced"
+    }
+
+    val now = Instant.now()
+    val duration = Duration.between(this, now)
+    if (duration.toMinutes() < 5) {
+        return  "Just now"
+    }
+
+    return when {
+        (duration < Duration.ofHours(1)) -> "${duration.toMinutes()} minutes ago"
+        (duration < Duration.ofDays(1)) -> "${duration.toHours()} hours ago"
+        (duration < Duration.ofDays(7)) -> "${duration.toDays()} days ago"
+        else -> {
+            // if duration is more than 7 days
+            val formatter = DateTimeFormatter.ofPattern(EnumDateFormater.DISPLAY.pattern)
+                .withLocale(java.util.Locale.getDefault())
+                .withZone(ZoneId.systemDefault())
+            formatter.format(this)
+        }
+    }
+
+}
+
 fun Instant.toReadableDate(enumDateFormat: EnumDateFormater = EnumDateFormater.SIMPLE): String {
     val nowYear = Instant.now().atZone(ZoneId.systemDefault()).year
     val isSameYear = this.atZone(ZoneId.systemDefault()).year == nowYear

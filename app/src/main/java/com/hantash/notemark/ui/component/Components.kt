@@ -195,34 +195,6 @@ fun AppFloatingButton(
 
 @Preview(showBackground = true)
 @Composable
-fun SettingsItem(
-    modifier: Modifier = Modifier,
-    text: String = "Log out",
-    icon: Int = R.drawable.ic_logout,
-    onClick: () -> Unit = {},
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clickable { onClick.invoke() },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = "Settings Icon",
-            tint = Tertiary
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleSmall.copy(color = Tertiary)
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
 fun NoteDetailSection(
     modifier: Modifier = Modifier,
     title: String = "Date created",
