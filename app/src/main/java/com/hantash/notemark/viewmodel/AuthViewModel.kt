@@ -10,6 +10,7 @@ import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.navigation.EnumScreen
 import com.hantash.notemark.utils.debug
+import com.hantash.notemark.utils.generateUserId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -101,7 +102,10 @@ class AuthViewModel @Inject constructor(
                         _uiLoginState.value = UiState.Success(user)
                         _uiEventFlow.emit(UiEvent.Navigate(EnumScreen.NOTE_LIST))
 
-                        prefRepository.save(user?.username ?: "", user?.accessToken ?: "", user?.refreshToken ?: "")
+                        user?.let {
+                            val userId = generateUserId(it.username)
+                            prefRepository.save(userId, it.username, it.accessToken ?: "", it.refreshToken ?: "")
+                        }
                     }
 
                     is Resource.Error -> {

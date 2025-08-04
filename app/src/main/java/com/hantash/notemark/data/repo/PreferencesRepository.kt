@@ -22,8 +22,13 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         it[PreferencesKeys.USERNAME] ?: ""
     }
 
-    suspend fun save(username: String, accessToken: String, refreshToken: String) {
+    val userId: Flow<String> = dataStore.data.map {
+        it[PreferencesKeys.USER_ID] ?: ""
+    }
+
+    suspend fun save(userId: String, username: String, accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
+            preferences[PreferencesKeys.USER_ID] = userId
             preferences[PreferencesKeys.USERNAME] = username
             preferences[PreferencesKeys.ACCESS_TOKEN] = accessToken
             preferences[PreferencesKeys.REFRESH_TOKEN] = refreshToken

@@ -80,7 +80,7 @@ fun NoteAddEditScreen(noteId: String, onNavigateBack: () -> Unit) {
         scope.launch {
             if (noteId.isNotEmpty()) {
                 if (noteViewModel.isNoteUpdated(note)) {
-                    note.lastEditedAt = Instant.now()
+                    note.lastEditedAt = Instant.now().toString()
                     noteViewModel.updateNote(note)
                 }
             } else {

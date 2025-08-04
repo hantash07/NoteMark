@@ -10,6 +10,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.hantash.notemark.DevicePosture
+import java.security.MessageDigest
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -97,6 +98,11 @@ fun Instant.toReadableDate(enumDateFormat: EnumDateFormater = EnumDateFormater.S
         .withLocale(java.util.Locale.getDefault())
         .withZone(ZoneId.systemDefault())
     return formatter.format(this)
+}
+
+fun generateUserId(username: String): String {
+    val bytes = MessageDigest.getInstance("SHA-256").digest(username.toByteArray())
+    return bytes.joinToString("") { "%02x".format(it) } // hex string
 }
 
 //Added a CompositionLocal that allows passing the ScreenOrientation deep into the Composable tree:

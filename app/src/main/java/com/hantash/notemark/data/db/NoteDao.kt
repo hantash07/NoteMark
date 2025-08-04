@@ -14,6 +14,9 @@ interface NoteDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(note: Note)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(note: List<Note>)
+
     @Update
     suspend fun update(note: Note)
 
@@ -28,8 +31,4 @@ interface NoteDao {
 
     @Query("SELECT * FROM Note WHERE id =:id")
     fun fetch(id: String): Flow<Note?>
-
-    @Query("SELECT * FROM Note WHERE isSync = 0")
-    fun getPendingNotes(): Flow<List<Note>>
-
 }

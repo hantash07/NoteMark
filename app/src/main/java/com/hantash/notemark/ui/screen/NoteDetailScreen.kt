@@ -62,6 +62,7 @@ import com.hantash.notemark.viewmodel.NoteViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 @Composable
 fun NoteDetailScreen(
@@ -290,12 +291,12 @@ private fun Content(
                 NoteDetailSection(
                     modifier = Modifier.weight(1f),
                     title = "Date created",
-                    description = note.createdAt.toReadableDate(EnumDateFormater.DISPLAY)
+                    description = Instant.parse(note.createdAt).toReadableDate(EnumDateFormater.DISPLAY)
                 )
                 NoteDetailSection(
                     modifier = Modifier.weight(1f),
                     title = "Last edited",
-                    description = note.lastEditedAt.toReadableDate(EnumDateFormater.DISPLAY)
+                    description = Instant.parse(note.lastEditedAt).toReadableDate(EnumDateFormater.DISPLAY)
                 )
             }
 

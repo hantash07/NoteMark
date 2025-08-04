@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -37,9 +36,9 @@ import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_ADD_EDIT
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_DETAIL
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_LIST
 import com.hantash.notemark.ui.navigation.EnumScreen.SETTINGS
-import com.hantash.notemark.ui.theme.OnSurfaceOpacity12
 import com.hantash.notemark.utils.Constant
 import com.hantash.notemark.utils.beautifyUsername
+import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.viewmodel.AuthViewModel
 import com.hantash.notemark.viewmodel.ConnectivityViewModel
@@ -62,10 +61,17 @@ fun NoteListScreen(
     val usernameState = authViewModel.usernameState.collectAsState(initial = "")
 
     val noteViewModel: NoteViewModel = hiltViewModel()
-    val notesState = noteViewModel.notesState.collectAsState(initial = emptyList())
+    val notesState = noteViewModel.notesState.collectAsState(initial = null)
 
     val showDialog = rememberSaveable { mutableStateOf(false) }
     val noteToDelete = rememberSaveable { mutableStateOf<Note?>(null) }
+
+//    LaunchedEffect(notesState.value) {
+//        if (notesState.value.isNullOrEmpty()) {
+////            debug("LaunchedEffect => getNotesFromRemote()")
+////            noteViewModel.getNotesFromRemote()
+//        }
+//    }
 
     LaunchedEffect(true) {
         noteViewModel.uiEventFlow.collect { event ->
@@ -147,7 +153,7 @@ private fun NoteListScaffold(
 @Composable
 private fun Content(
     modifier: Modifier = Modifier,
-    notes: List<Note> = emptyList(),
+    notes: List<Note>? = emptyList(),
     contentMaxLength: Int = Constant.CONTENT_LENGTH_PORTRAIT,
     onPreview: (Note) -> Unit = {},
     onDelete: (Note) -> Unit = {},
@@ -157,16 +163,18 @@ private fun Content(
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.surface)
     ) {
-        if (notes.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "You’ve got an empty board,\nlet’s place your first note on it!",
-                    style = MaterialTheme.typography.titleSmall,
-                    textAlign = TextAlign.Center
-                )
+        if (notes.isNullOrEmpty()) {
+            if (notes != null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "You’ve got an empty board,\nlet’s place your first note on it!",
+                        style = MaterialTheme.typography.titleSmall,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         } else {
             LazyVerticalStaggeredGrid(

@@ -1,6 +1,14 @@
 package com.hantash.notemark.data.api
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.hantash.notemark.data.repo.PreferencesRepository
+import com.hantash.notemark.utils.PreferencesKeys
 import com.hantash.notemark.utils.debug
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -13,15 +21,20 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
 
-class ErrorInterceptor : Interceptor {
+class ErrorInterceptor (private val dataStore: DataStore<Preferences>) : Interceptor {
     private val jsonSerializable = Json {
         ignoreUnknownKeys = true
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
+        val accessToken = runBlocking {
+            dataStore.data.map { it[PreferencesKeys.ACCESS_TOKEN] ?: "" }.first()
+        }
+
         val originalRequest = chain.request()
         val newRequest = originalRequest.newBuilder()
             .addHeader("X-User-Email", "hantashnadeem@gmail.com")
+            .addHeader("Authorization", "Bearer $accessToken")
             .build()
 
         val response = chain.proceed(newRequest)

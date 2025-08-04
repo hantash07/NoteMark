@@ -8,6 +8,7 @@ import com.hantash.notemark.data.api.ErrorInterceptor
 import com.hantash.notemark.data.api.NoteAPI
 import com.hantash.notemark.data.db.LocalDatabase
 import com.hantash.notemark.data.db.NoteDao
+import com.hantash.notemark.data.db.SyncRecordDao
 import com.hantash.notemark.utils.Constant
 import com.hantash.notemark.utils.dataStore
 import dagger.Module
@@ -25,9 +26,9 @@ class AppModule {
 
     @Provides
     @AppScope
-    fun retrofit(): Retrofit {
+    fun retrofit(dataStore: DataStore<Preferences>): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(ErrorInterceptor())
+            .addInterceptor(ErrorInterceptor(dataStore))
             .build()
 
         return Retrofit.Builder()
@@ -63,6 +64,12 @@ class AppModule {
     @AppScope
     fun noteDao(localDatabase: LocalDatabase): NoteDao {
         return localDatabase.noteDao()
+    }
+
+    @Provides
+    @AppScope
+    fun syncRecordDao(localDatabase: LocalDatabase): SyncRecordDao {
+        return localDatabase.syncRecordDao()
     }
 
 }

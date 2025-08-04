@@ -21,6 +21,7 @@ import com.hantash.notemark.ui.theme.OnSurfaceVariant
 import com.hantash.notemark.ui.theme.Primary
 import com.hantash.notemark.ui.theme.SurfaceLowest
 import com.hantash.notemark.utils.toReadableDate
+import java.time.Instant
 
 @Preview(showBackground = true)
 @Composable
@@ -47,7 +48,7 @@ fun NoteItem(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = note.createdAt.toReadableDate(),
+                text = Instant.parse(note.createdAt).toReadableDate(),
                 style = MaterialTheme.typography.bodyMedium.copy(color = Primary)
             )
             Text(

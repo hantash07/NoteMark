@@ -5,6 +5,7 @@ import com.hantash.notemark.data.api.NoteAPI
 import com.hantash.notemark.data.api.Resource
 import com.hantash.notemark.data.db.NoteDao
 import com.hantash.notemark.model.Note
+import com.hantash.notemark.utils.debug
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -16,6 +17,10 @@ class NoteRepository(
 
     suspend fun addNoteLocal(note: Note) {
         noteDao.insert(note)
+    }
+
+    suspend fun addNoteLocal(notes: List<Note>) {
+        noteDao.insert(notes)
     }
 
     suspend fun updateNoteLocal(note: Note) {
@@ -34,15 +39,16 @@ class NoteRepository(
         return noteDao.fetch(id)
     }
 
-    fun getPendingNotes(): Flow<List<Note>> {
-        return noteDao.getPendingNotes()
-    }
+//    fun getPendingNotes(): Flow<List<Note>> {
+//        return noteDao.getPendingNotes()
+//    }
 
     fun addNote(note: Note): Flow<Resource<Note?>> = flow {
         emit(Resource.Loading())
         try {
-            val payload = mapOf("id" to note.id.toString(), "title" to note.title, "content" to note.content,
-                "createdAt" to note.createdAt.toString(), "lastEditedAt" to note.lastEditedAt.toString())
+            val payload = mapOf("id" to note.id, "title" to note.title, "content" to note.content,
+                "createdAt" to note.createdAt, "lastEditedAt" to note.lastEditedAt)
+            debug("Payload: $payload")
             val response = noteAPI.addNote(payload)
             emit(Resource.Success(response.body()))
         } catch (exceptionAPI: ExceptionAPI) {
