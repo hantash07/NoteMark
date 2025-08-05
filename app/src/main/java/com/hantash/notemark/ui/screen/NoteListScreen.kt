@@ -24,9 +24,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hantash.notemark.DevicePosture
 import com.hantash.notemark.model.Note
 import com.hantash.notemark.ui.common.UiEvent
+import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.component.AppFloatingButton
 import com.hantash.notemark.ui.component.BaseAppBar
 import com.hantash.notemark.ui.component.ConfirmationDialog
@@ -42,7 +44,7 @@ import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.viewmodel.AuthViewModel
 import com.hantash.notemark.viewmodel.ConnectivityViewModel
-import com.hantash.notemark.viewmodel.NoteViewModel
+import com.hantash.notemark.viewmodel.NoteListViewModel
 
 @Composable
 fun NoteListScreen(
@@ -60,18 +62,17 @@ fun NoteListScreen(
     val authViewModel: AuthViewModel = hiltViewModel()
     val usernameState = authViewModel.usernameState.collectAsState(initial = "")
 
-    val noteViewModel: NoteViewModel = hiltViewModel()
-    val notesState = noteViewModel.notesState.collectAsState(initial = null)
+    val noteViewModel: NoteListViewModel = hiltViewModel()
+    val uiState = noteViewModel.uiState.collectAsStateWithLifecycle()
+    val notesState = noteViewModel.notesStateFlow.collectAsState(initial = emptyList())
 
     val showDialog = rememberSaveable { mutableStateOf(false) }
     val noteToDelete = rememberSaveable { mutableStateOf<Note?>(null) }
 
-//    LaunchedEffect(notesState.value) {
-//        if (notesState.value.isNullOrEmpty()) {
-////            debug("LaunchedEffect => getNotesFromRemote()")
-////            noteViewModel.getNotesFromRemote()
-//        }
-//    }
+    LaunchedEffect(Unit) {
+        debug("LaunchedEffect => getNotesFromRemote()")
+        noteViewModel.requestGetNotes()
+    }
 
     LaunchedEffect(true) {
         noteViewModel.uiEventFlow.collect { event ->
@@ -94,10 +95,11 @@ fun NoteListScreen(
         content = {
             Content(
                 modifier = Modifier.padding(it),
+                uiState = uiState.value,
                 notes = notesState.value,
                 contentMaxLength = contentMaxLength,
                 onPreview = { note ->
-                    onNavWithArguments(NOTE_DETAIL, note.id.toString())
+                    onNavWithArguments(NOTE_DETAIL, note.id)
                 },
                 onDelete = { note ->
                     noteViewModel.showConfirmationDialog(note)
@@ -153,7 +155,8 @@ private fun NoteListScaffold(
 @Composable
 private fun Content(
     modifier: Modifier = Modifier,
-    notes: List<Note>? = emptyList(),
+    uiState: UiState<Unit> = UiState.Idle,
+    notes: List<Note> = emptyList(),
     contentMaxLength: Int = Constant.CONTENT_LENGTH_PORTRAIT,
     onPreview: (Note) -> Unit = {},
     onDelete: (Note) -> Unit = {},
@@ -163,8 +166,8 @@ private fun Content(
             .fillMaxSize()
             .background(color = MaterialTheme.colorScheme.surface)
     ) {
-        if (notes.isNullOrEmpty()) {
-            if (notes != null) {
+        if (notes.isEmpty()) {
+            if (uiState !is UiState.Loading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center

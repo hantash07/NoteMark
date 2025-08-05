@@ -1,6 +1,7 @@
 package com.hantash.notemark.data.api
 
 import com.hantash.notemark.model.Note
+import com.hantash.notemark.model.NotesResponse
 import com.hantash.notemark.model.User
 import com.hantash.notemark.utils.Constant
 import retrofit2.Response
@@ -32,5 +33,5 @@ interface NoteAPI {
     suspend fun deleteNote(@Path("id") noteId: String): Response<Unit>
 
     @GET(Constant.BASE_URL + "/api/notes")
-    suspend fun getNotes(@Query("page") page: Int = -1, @Query("size") size: Int = 0): Response<List<Note>?>
+    suspend fun getNotes(@Query("page") page: Int = -1, @Query("size") size: Int = 0): Response<NotesResponse?>
 }

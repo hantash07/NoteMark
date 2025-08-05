@@ -2,6 +2,7 @@ package com.hantash.notemark.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -11,8 +12,8 @@ data class SyncRecord(
     val userId: String,
     val noteId: String,
     val operation: SyncOperation,
-    val payload: String,
-    val timestamp: Long,
+    var payload: String,
+    var timestamp: Long = Instant.now().toEpochMilli(),
 )
 
 enum class SyncOperation {

@@ -37,7 +37,7 @@ import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.utils.beatifyLastSync
 import com.hantash.notemark.utils.debug
 import com.hantash.notemark.viewmodel.AuthViewModel
-import com.hantash.notemark.viewmodel.NoteViewModel
+import com.hantash.notemark.viewmodel.SettingsViewModel
 import java.time.Instant
 
 @Composable
@@ -48,9 +48,9 @@ fun SettingsScreen(
     val authViewModel: AuthViewModel = hiltViewModel()
     val uiStateLogout = authViewModel.uiLogoutState.collectAsStateWithLifecycle()
 
-    val noteViewModel: NoteViewModel = hiltViewModel()
-    val lastSyncState = noteViewModel.lastSyncStateFlow.collectAsState(null)
-    val uiStateSync = noteViewModel.syncUiState.collectAsStateWithLifecycle()
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val lastSyncState = settingsViewModel.lastSyncStateFlow.collectAsState(null)
+    val uiStateSync = settingsViewModel.uiState.collectAsStateWithLifecycle()
 
     val snackBarHost = remember { SnackbarHostState() }
     val syncInterval = remember { mutableStateOf(SyncInterval.ManualOnly) }
@@ -97,7 +97,7 @@ fun SettingsScreen(
                             expandSyncOption.value = !expandSyncOption.value
                         }
                         SYNC_DATA -> {
-                            noteViewModel.syncPendingNotes()
+                            settingsViewModel.requestSyncRecords()
                         }
                         LOGOUT -> {
                             authViewModel.logout()

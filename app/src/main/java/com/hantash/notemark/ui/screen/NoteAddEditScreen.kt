@@ -38,11 +38,10 @@ import com.hantash.notemark.ui.component.ConfirmationDialog
 import com.hantash.notemark.ui.component.EnumNoteField
 import com.hantash.notemark.ui.component.NotesField
 import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_ADD_EDIT
-import com.hantash.notemark.ui.navigation.EnumScreen.NOTE_LIST
 import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.utils.debug
 import com.hantash.notemark.utils.localScreenOrientation
-import com.hantash.notemark.viewmodel.NoteViewModel
+import com.hantash.notemark.viewmodel.NoteAddEditViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -51,8 +50,8 @@ fun NoteAddEditScreen(noteId: String, onNavigateBack: () -> Unit) {
     val devicePosture = localScreenOrientation.current
     val focusManager = LocalFocusManager.current
 
-    val noteViewModel: NoteViewModel = hiltViewModel()
-    val noteState = noteViewModel.noteStateFlow.collectAsState()
+    val viewModel: NoteAddEditViewModel = hiltViewModel()
+    val noteState = viewModel.noteStateFlow.collectAsState()
 
     val scope = rememberCoroutineScope()
     val noteToAdd = remember { mutableStateOf(Note()) }
@@ -62,7 +61,7 @@ fun NoteAddEditScreen(noteId: String, onNavigateBack: () -> Unit) {
     LaunchedEffect(noteId) {
         debug("LaunchedEffect: noteId")
         if (noteId.isNotEmpty()) {
-            noteViewModel.getNote(noteId)
+            viewModel.getNote(noteId)
         }
     }
 
@@ -79,12 +78,12 @@ fun NoteAddEditScreen(noteId: String, onNavigateBack: () -> Unit) {
 
         scope.launch {
             if (noteId.isNotEmpty()) {
-                if (noteViewModel.isNoteUpdated(note)) {
+                if (viewModel.isNoteUpdated(note)) {
                     note.lastEditedAt = Instant.now().toString()
-                    noteViewModel.updateNote(note)
+                    viewModel.updateNote(note)
                 }
             } else {
-                noteViewModel.addNote(note)
+                viewModel.addNote(note)
             }
         }
     }
@@ -94,7 +93,7 @@ fun NoteAddEditScreen(noteId: String, onNavigateBack: () -> Unit) {
         onNavigateBack = {
             if (noteId.isNotEmpty()) {
                 scope.launch {
-                    if (noteViewModel.isNoteUpdated(noteToAdd.value)) {
+                    if (viewModel.isNoteUpdated(noteToAdd.value)) {
                         showDialog.value = true
                     } else {
                         onNavigateBack.invoke()

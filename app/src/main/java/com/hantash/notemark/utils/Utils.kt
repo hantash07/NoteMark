@@ -10,6 +10,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.hantash.notemark.DevicePosture
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.security.MessageDigest
 import java.time.Duration
 import java.time.Instant
@@ -98,6 +101,11 @@ fun Instant.toReadableDate(enumDateFormat: EnumDateFormater = EnumDateFormater.S
         .withLocale(java.util.Locale.getDefault())
         .withZone(ZoneId.systemDefault())
     return formatter.format(this)
+}
+
+fun String.toMap(): Map<String, String> {
+    val jsonElement = Json.parseToJsonElement(this)
+    return jsonElement.jsonObject.mapValues { it.value.jsonPrimitive.content }
 }
 
 fun generateUserId(username: String): String {

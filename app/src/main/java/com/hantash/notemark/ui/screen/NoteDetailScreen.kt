@@ -58,7 +58,7 @@ import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.utils.EnumDateFormater
 import com.hantash.notemark.utils.localScreenOrientation
 import com.hantash.notemark.utils.toReadableDate
-import com.hantash.notemark.viewmodel.NoteViewModel
+import com.hantash.notemark.viewmodel.NoteDetailViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -76,8 +76,8 @@ fun NoteDetailScreen(
 
     val devicePosture = localScreenOrientation.current
 
-    val noteViewModel: NoteViewModel = hiltViewModel()
-    val noteState = noteViewModel.noteStateFlow.collectAsState()
+    val viewModel: NoteDetailViewModel = hiltViewModel()
+    val noteState = viewModel.noteStateFlow.collectAsState()
 
     val noteMode = rememberSaveable { mutableStateOf(EnumNoteMode.VIEW) }
     val isHideAlternativeUI = rememberSaveable { mutableStateOf(false) }
@@ -87,7 +87,7 @@ fun NoteDetailScreen(
     val isScrolling = remember { mutableStateOf(false) }
 
     LaunchedEffect(noteId) {
-        noteViewModel.getNote(noteId)
+        viewModel.getNote(noteId)
         noteMode.value = if (noteMode.value == EnumNoteMode.READER) EnumNoteMode.READER else EnumNoteMode.VIEW
     }
 

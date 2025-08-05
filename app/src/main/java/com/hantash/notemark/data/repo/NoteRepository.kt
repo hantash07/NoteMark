@@ -5,7 +5,9 @@ import com.hantash.notemark.data.api.NoteAPI
 import com.hantash.notemark.data.api.Resource
 import com.hantash.notemark.data.db.NoteDao
 import com.hantash.notemark.model.Note
+import com.hantash.notemark.model.NotesResponse
 import com.hantash.notemark.utils.debug
+import com.hantash.notemark.utils.toMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -15,19 +17,19 @@ class NoteRepository(
 ) {
     val notesFlow: Flow<List<Note>> = noteDao.fetch()
 
-    suspend fun addNoteLocal(note: Note) {
+    suspend fun addNote(note: Note) {
         noteDao.insert(note)
     }
 
-    suspend fun addNoteLocal(notes: List<Note>) {
+    suspend fun addNote(notes: List<Note>) {
         noteDao.insert(notes)
     }
 
-    suspend fun updateNoteLocal(note: Note) {
+    suspend fun updateNote(note: Note) {
         noteDao.update(note)
     }
 
-    suspend fun deleteNoteLocal(note: Note) {
+    suspend fun deleteNote(note: Note) {
         noteDao.delete(note)
     }
 
@@ -39,17 +41,13 @@ class NoteRepository(
         return noteDao.fetch(id)
     }
 
-//    fun getPendingNotes(): Flow<List<Note>> {
-//        return noteDao.getPendingNotes()
-//    }
-
-    fun addNote(note: Note): Flow<Resource<Note?>> = flow {
+    fun requestAddNote(payload: String): Flow<Resource<Note?>> = flow {
         emit(Resource.Loading())
         try {
-            val payload = mapOf("id" to note.id, "title" to note.title, "content" to note.content,
-                "createdAt" to note.createdAt, "lastEditedAt" to note.lastEditedAt)
+//            val payload = mapOf("id" to note.id, "title" to note.title, "content" to note.content,
+//                "createdAt" to note.createdAt, "lastEditedAt" to note.lastEditedAt)
             debug("Payload: $payload")
-            val response = noteAPI.addNote(payload)
+            val response = noteAPI.addNote(payload.toMap())
             emit(Resource.Success(response.body()))
         } catch (exceptionAPI: ExceptionAPI) {
             emit(Resource.Error(exceptionAPI.message, exceptionAPI.code))
@@ -58,12 +56,12 @@ class NoteRepository(
         }
     }
 
-    fun updateNote(note: Note): Flow<Resource<Note?>> = flow {
+    fun requestUpdateNote(payload: String): Flow<Resource<Note?>> = flow {
         emit(Resource.Loading())
         try {
-            val payload = mapOf("id" to note.id.toString(), "title" to note.title, "content" to note.content,
-                "createdAt" to note.createdAt.toString(), "lastEditedAt" to note.lastEditedAt.toString())
-            val response = noteAPI.updateNote(payload)
+//            val payload = mapOf("id" to note.id.toString(), "title" to note.title, "content" to note.content,
+//                "createdAt" to note.createdAt.toString(), "lastEditedAt" to note.lastEditedAt.toString())
+            val response = noteAPI.updateNote(payload.toMap())
             emit(Resource.Success(response.body()))
         } catch (exceptionAPI: ExceptionAPI) {
             emit(Resource.Error(exceptionAPI.message, exceptionAPI.code))
@@ -72,10 +70,10 @@ class NoteRepository(
         }
     }
 
-    fun deleteNote(note: Note): Flow<Resource<Unit>> = flow {
+    fun requestDeleteNote(noteId: String): Flow<Resource<Unit>> = flow {
         emit(Resource.Loading())
         try {
-            val response = noteAPI.deleteNote(note.id.toString())
+            val response = noteAPI.deleteNote(noteId)
             emit(Resource.Success(response.body()))
         } catch (exceptionAPI: ExceptionAPI) {
             emit(Resource.Error(exceptionAPI.message, exceptionAPI.code))
@@ -84,7 +82,7 @@ class NoteRepository(
         }
     }
 
-    fun getNotes(): Flow<Resource<List<Note>?>> = flow {
+    fun requestGetNotes(): Flow<Resource<NotesResponse?>> = flow {
         emit(Resource.Loading())
         try {
             val response = noteAPI.getNotes()
