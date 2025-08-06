@@ -69,9 +69,11 @@ fun NoteListScreen(
     val showDialog = rememberSaveable { mutableStateOf(false) }
     val noteToDelete = rememberSaveable { mutableStateOf<Note?>(null) }
 
-    LaunchedEffect(Unit) {
-        debug("LaunchedEffect => getNotesFromRemote()")
-        noteViewModel.requestGetNotes()
+    LaunchedEffect(true) {
+        if (notesState.value.isEmpty()) {
+            debug("LaunchedEffect => getNotesFromRemote()")
+            noteViewModel.requestGetNotes()
+        }
     }
 
     LaunchedEffect(true) {

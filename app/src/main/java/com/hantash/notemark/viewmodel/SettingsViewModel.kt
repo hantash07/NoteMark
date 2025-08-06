@@ -7,7 +7,8 @@ import com.hantash.notemark.data.repo.NoteRepository
 import com.hantash.notemark.data.repo.PreferencesRepository
 import com.hantash.notemark.data.repo.SyncRepository
 import com.hantash.notemark.model.SyncOperation
-import com.hantash.notemark.model.SyncRecord
+import com.hantash.notemark.ui.common.DialogEvent
+import com.hantash.notemark.ui.common.DialogState
 import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.utils.debug
@@ -35,18 +36,17 @@ class SettingsViewModel @Inject constructor(
     private val syncRepository: SyncRepository,
     private val prefRepository: PreferencesRepository,
 ): ViewModel() {
-    private val _uiEventFlow = MutableSharedFlow<UiEvent>()
-    val uiEventFlow: SharedFlow<UiEvent> = _uiEventFlow.asSharedFlow()
+    private val _uiEvent = MutableSharedFlow<UiEvent>()
+    val uiEvent: SharedFlow<UiEvent> = _uiEvent.asSharedFlow()
 
     private val _uiState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val uiState: StateFlow<UiState<Unit>> = _uiState.asStateFlow()
 
-//    val syncListStateFlow: StateFlow<List<SyncRecord>> = syncRepository.syncListFlow
-//        .stateIn(
-//            viewModelScope,
-//            SharingStarted.WhileSubscribed(5000),
-//            emptyList()
-//        )
+    private val _dialogEvent = MutableSharedFlow<DialogEvent>()
+    val dialogEvent = _dialogEvent.asSharedFlow()
+
+    private val _dialogState = MutableStateFlow(DialogState())
+    val dialogState: StateFlow<DialogState> = _dialogState.asStateFlow()
 
     val lastSyncStateFlow: StateFlow<Instant?> = prefRepository.lastSyncFlow
         .stateIn(
@@ -54,6 +54,34 @@ class SettingsViewModel @Inject constructor(
             SharingStarted.WhileSubscribed(5000),
             null,
         )
+
+    fun showDialog(
+        title: String,
+        message: String,
+        confirmText: String,
+        dismissText: String,
+        onConfirm: () -> Unit,
+        onDismiss: () -> Unit
+    ) {
+        _dialogState.value = DialogState(
+            isVisible = true,
+            title = title,
+            message = message,
+            confirmText = confirmText,
+            dismissText = dismissText,
+            onConfirm = onConfirm,
+            onDismiss = onDismiss
+        )
+    }
+
+    fun hideDialog() {
+        _dialogState.value = DialogState()
+    }
+
+    suspend fun isSyncPending(): Boolean {
+        val sync = syncRepository.fetchByUserId(prefRepository.userId.firstOrNull() ?: "").firstOrNull()
+        return !sync.isNullOrEmpty()
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     fun requestSyncRecords() {
@@ -123,12 +151,19 @@ class SettingsViewModel @Inject constructor(
                     } catch (e: Exception) {
                         debug("FAILED SYNCS: ${e.localizedMessage}")
                         _uiState.value = UiState.Idle
-                        _uiEventFlow.emit(UiEvent.ShowSnackBar(e.localizedMessage ?: ""))
+                        _uiEvent.emit(UiEvent.ShowSnackBar(e.localizedMessage ?: ""))
                     }
                 }
 
-            _uiState.value = UiState.Success(Unit)
-            prefRepository.savaLastSync(Instant.now()) //Saving last sync date
+            if (isSyncPending()) { // Sync is Failed
+                _uiState.value = UiState.Idle
+                _dialogEvent.emit(DialogEvent.SyncFailed)
+            } else { // Sync Successfully
+                _uiState.value = UiState.Success(Unit)
+                _dialogEvent.emit(DialogEvent.SyncSuccess)
+
+                prefRepository.savaLastSync(Instant.now()) //Saving last sync date
+            }
             debug("SYNC COMPLETED")
         }
     }

@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hantash.notemark.R
+import com.hantash.notemark.ui.common.DialogEvent
 import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
 import com.hantash.notemark.ui.component.AppLoading
 import com.hantash.notemark.ui.component.BaseAppBar
+import com.hantash.notemark.ui.component.ConfirmationDialog
 import com.hantash.notemark.ui.component.EnumSettingsItem
 import com.hantash.notemark.ui.component.EnumSettingsItem.LOGOUT
 import com.hantash.notemark.ui.component.EnumSettingsItem.SYNC_DATA
@@ -37,7 +42,9 @@ import com.hantash.notemark.ui.theme.Surface
 import com.hantash.notemark.utils.beatifyLastSync
 import com.hantash.notemark.utils.debug
 import com.hantash.notemark.viewmodel.AuthViewModel
+import com.hantash.notemark.viewmodel.ConnectivityViewModel
 import com.hantash.notemark.viewmodel.SettingsViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 
 @Composable
@@ -45,13 +52,18 @@ fun SettingsScreen(
     onNavigateTo: (EnumScreen) -> Unit,
     onNavigateBack: () -> Unit
 ) {
+    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
+    val isConnected by connectivityViewModel.isConnected.collectAsState(false)
+
     val authViewModel: AuthViewModel = hiltViewModel()
     val uiStateLogout = authViewModel.uiLogoutState.collectAsStateWithLifecycle()
 
     val settingsViewModel: SettingsViewModel = hiltViewModel()
     val lastSyncState = settingsViewModel.lastSyncStateFlow.collectAsState(null)
     val uiStateSync = settingsViewModel.uiState.collectAsStateWithLifecycle()
+    val dialogState = settingsViewModel.dialogState.collectAsStateWithLifecycle()
 
+    val scope = rememberCoroutineScope()
     val snackBarHost = remember { SnackbarHostState() }
     val syncInterval = remember { mutableStateOf(SyncInterval.ManualOnly) }
     val expandSyncOption = remember { mutableStateOf(false) }
@@ -69,6 +81,69 @@ fun SettingsScreen(
                 }
 
                 else -> {}
+            }
+        }
+    }
+
+    LaunchedEffect(true) {
+        settingsViewModel.dialogEvent.collect { event ->
+            when(event) {
+                DialogEvent.SyncSuccess -> {
+                    authViewModel.logout()
+                }
+                DialogEvent.SyncFailed -> {
+                    settingsViewModel.showDialog(
+                        title = "",
+                        message = "You can try again or log out without syncing. Your changes will remain saved locally.",
+                        confirmText = "Close",
+                        dismissText = "Log out without syncing",
+                        onConfirm = {
+                            settingsViewModel.hideDialog()
+                        },
+                        onDismiss = {
+                            settingsViewModel.hideDialog()
+                            authViewModel.logout()
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    fun logoutUser() {
+        scope.launch {
+            if (isConnected) {
+                if (settingsViewModel.isSyncPending()) {
+                    settingsViewModel.showDialog(
+                        title = "",
+                        message = "You have unsynced changes.\nWhat would you like to do before logging out?",
+                        confirmText = "Sync now",
+                        dismissText = "Log out without syncing",
+                        onConfirm = {
+                            settingsViewModel.hideDialog()
+                            settingsViewModel.requestSyncRecords()
+                        },
+                        onDismiss = {
+                            settingsViewModel.hideDialog()
+                            authViewModel.logout()
+                        }
+                    )
+                } else {
+                    authViewModel.logout()
+                }
+            } else {
+                snackBarHost.showSnackbar(message = "You need an internet connection to log out.")
+            }
+        }
+    }
+
+    fun syncManually() {
+        scope.launch {
+            if (isConnected) {
+                settingsViewModel.requestSyncRecords()
+            }
+            else {
+                snackBarHost.showSnackbar(message = "You need an internet connection to Sync Manually.")
             }
         }
     }
@@ -97,16 +172,30 @@ fun SettingsScreen(
                             expandSyncOption.value = !expandSyncOption.value
                         }
                         SYNC_DATA -> {
-                            settingsViewModel.requestSyncRecords()
+                            syncManually()
                         }
                         LOGOUT -> {
-                            authViewModel.logout()
+                            logoutUser()
                         }
                     }
                 },
             )
         }
     )
+
+    if (dialogState.value.isVisible) {
+        val dialog = dialogState.value
+
+        ConfirmationDialog(
+            dialog.isVisible,
+            title = dialog.title,
+            message = dialog.message,
+            confirmText = dialog.confirmText,
+            dismissText = dialog.dismissText,
+            onConfirm = dialog.onConfirm,
+            onDismiss = dialog.onDismiss,
+        )
+    }
 }
 
 @Composable

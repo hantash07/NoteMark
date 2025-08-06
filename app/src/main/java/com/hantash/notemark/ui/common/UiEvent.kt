@@ -8,6 +8,6 @@ sealed class UiEvent {
     data class DeleteNote(val note: Note): UiEvent()
     data class Navigate(val enumScreen: EnumScreen): UiEvent()
     data class Authenticate(val email: String, val password: String): UiEvent()
-    object NavigateBack: UiEvent()
-    object DismissDialog: UiEvent()
+    data object NavigateBack: UiEvent()
+    data object DismissDialog: UiEvent()
 }

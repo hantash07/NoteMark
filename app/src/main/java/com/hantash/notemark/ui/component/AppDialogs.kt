@@ -20,7 +20,7 @@ fun ConfirmationDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = title) },
+        title = if (title.isNotEmpty()) { { Text(title) } } else null,
         text = { Text(text = message) },
         confirmButton = {
             TextButton(onClick = {
