@@ -11,6 +11,7 @@ import com.hantash.notemark.ui.common.DialogEvent
 import com.hantash.notemark.ui.common.DialogState
 import com.hantash.notemark.ui.common.UiEvent
 import com.hantash.notemark.ui.common.UiState
+import com.hantash.notemark.ui.component.SyncInterval
 import com.hantash.notemark.utils.debug
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -48,6 +49,13 @@ class SettingsViewModel @Inject constructor(
     private val _dialogState = MutableStateFlow(DialogState())
     val dialogState: StateFlow<DialogState> = _dialogState.asStateFlow()
 
+    val syncIntervalStateFlow: StateFlow<SyncInterval> = prefRepository.syncIntervalFlow
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            SyncInterval.ManualOnly
+        )
+
     val lastSyncStateFlow: StateFlow<Instant?> = prefRepository.lastSyncFlow
         .stateIn(
             viewModelScope,
@@ -78,13 +86,19 @@ class SettingsViewModel @Inject constructor(
         _dialogState.value = DialogState()
     }
 
+    fun saveSyncInterval(syncInterval: SyncInterval) {
+        viewModelScope.launch {
+            prefRepository.saveSyncInterval(syncInterval)
+        }
+    }
+
     suspend fun isSyncPending(): Boolean {
         val sync = syncRepository.fetchByUserId(prefRepository.userId.firstOrNull() ?: "").firstOrNull()
         return !sync.isNullOrEmpty()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun requestSyncRecords() {
+    fun requestSyncRecords(isLogoutAttempted: Boolean = false) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             debug("SYNC STARTED")
@@ -157,10 +171,14 @@ class SettingsViewModel @Inject constructor(
 
             if (isSyncPending()) { // Sync is Failed
                 _uiState.value = UiState.Idle
-                _dialogEvent.emit(DialogEvent.SyncFailed)
+                if (isLogoutAttempted) {
+                    _dialogEvent.emit(DialogEvent.SyncFailed)
+                }
             } else { // Sync Successfully
                 _uiState.value = UiState.Success(Unit)
-                _dialogEvent.emit(DialogEvent.SyncSuccess)
+                if (isLogoutAttempted) {
+                    _dialogEvent.emit(DialogEvent.SyncSuccess)
+                }
 
                 prefRepository.savaLastSync(Instant.now()) //Saving last sync date
             }

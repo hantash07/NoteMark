@@ -3,6 +3,7 @@ package com.hantash.notemark.data.repo
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import com.hantash.notemark.ui.component.SyncInterval
 import com.hantash.notemark.utils.PreferencesKeys
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -35,7 +36,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    // Sync Data Preferences
+    // Last Sync
     val lastSyncFlow: Flow<Instant?> = dataStore.data.map { preferences ->
         preferences[PreferencesKeys.LAST_SYNC]?.let { Instant.ofEpochMilli(it) }
     }
@@ -43,6 +44,17 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun savaLastSync(date: Instant) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_SYNC] = date.toEpochMilli()
+        }
+    }
+
+    // Sync Interval
+    val syncIntervalFlow: Flow<SyncInterval> = dataStore.data.map { preferences ->
+        SyncInterval.fromLabel(preferences[PreferencesKeys.SYNC_INTERVAL])
+    }
+
+    suspend fun saveSyncInterval(syncInterval: SyncInterval) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SYNC_INTERVAL] = syncInterval.label
         }
     }
 

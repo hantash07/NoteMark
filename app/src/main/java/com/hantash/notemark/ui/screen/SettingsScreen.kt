@@ -59,13 +59,13 @@ fun SettingsScreen(
     val uiStateLogout = authViewModel.uiLogoutState.collectAsStateWithLifecycle()
 
     val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val syncIntervalState = settingsViewModel.syncIntervalStateFlow.collectAsState(SyncInterval.ManualOnly)
     val lastSyncState = settingsViewModel.lastSyncStateFlow.collectAsState(null)
     val uiStateSync = settingsViewModel.uiState.collectAsStateWithLifecycle()
     val dialogState = settingsViewModel.dialogState.collectAsStateWithLifecycle()
 
     val scope = rememberCoroutineScope()
     val snackBarHost = remember { SnackbarHostState() }
-    val syncInterval = remember { mutableStateOf(SyncInterval.ManualOnly) }
     val expandSyncOption = remember { mutableStateOf(false) }
 
     LaunchedEffect(true) {
@@ -121,7 +121,7 @@ fun SettingsScreen(
                         dismissText = "Log out without syncing",
                         onConfirm = {
                             settingsViewModel.hideDialog()
-                            settingsViewModel.requestSyncRecords()
+                            settingsViewModel.requestSyncRecords(isLogoutAttempted = true)
                         },
                         onDismiss = {
                             settingsViewModel.hideDialog()
@@ -161,10 +161,10 @@ fun SettingsScreen(
                 lastSync = lastSyncState.value,
                 isLoading = uiStateLogout.value == UiState.Loading || uiStateSync.value == UiState.Loading,
                 isExpandSyncOption = expandSyncOption.value,
-                selectedSyncInterval = syncInterval.value,
+                selectedSyncInterval = syncIntervalState.value,
                 onSelectInterval = {
                     expandSyncOption.value = !expandSyncOption.value
-                    syncInterval.value = it
+                    settingsViewModel.saveSyncInterval(it)
                 },
                 onClick = { settingItem ->
                     when (settingItem) {
